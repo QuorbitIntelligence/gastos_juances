@@ -779,7 +779,7 @@ ACT.conectar = async () => {
   if (!c.url || !c.token) return pantallaConexion('El código no es válido.');
   LS.set('gj_conexion', c); $('#btnCon').textContent = 'Conectando…';
   try { const r = await rpc('estado'); shell(); setState(r); toast('¡Conectado!'); }
-  catch(e) { LS.del('gj_conexion'); pantallaConexion(e.message); }
+  catch(e) { LS.del('gj_conexion'); pantallaConexion(e.offline ? 'Google no permitió la conexión. En Apps Script revisa: Implementar → Gestionar implementaciones → ✏️ → Quién tiene acceso: «Cualquier persona» → Versión nueva → Implementar.' : e.message); }
 };
 (function iniciar(){
   if (window.MODO === 'pwa') {
