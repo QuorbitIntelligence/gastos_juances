@@ -1,4 +1,4 @@
-<!-- Gastos Juances v2.0.0 -->
+<!-- Gastos Juances v2.0.1 -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -335,9 +335,10 @@ const fechaHora = iso => iso ? new Date(iso).toLocaleString('es-MX', {day:'numer
 const hora = iso => new Date(iso).toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit'});
 
 /* ================== Versión ================== */
-const APP_VERSION = '2.0.0';
+const APP_VERSION = '2.0.1';
 const APP_FECHA = '13 nov 2026';
 const CHANGELOG = [
+  { v: '2.0.1', f: '13 nov 2026', c: ['Tus registros anteriores se ligan solos a la cuenta del administrador y se quitan los duplicados del espacio en blanco', 'Nuevo menú en la hoja: «Ligar mis datos a mi cuenta (reparar)»', 'La tarjeta «Instalar aplicación» solo aparece cuando de verdad se puede instalar'] },
   { v: '2.0.0', f: '13 nov 2026', c: ['Inicio de sesión con Google (Gmail) y usuarios con roles: Administrador y Usuario', 'Cada usuario tiene su propio espacio en blanco; nadie ve los datos de otros', 'Alertas de pagos vencidos, que vencen hoy y en 3 días: notificación en el celular y correo diario', 'Campana de alertas, número en el icono de la app y sección «Próximos pagos» con botón Pagar', 'Historial de abonos por concepto (pagos parciales con fecha)', 'Proyección: ingresos y gastos sin monto se estiman con el mes anterior', 'Modo privado para ocultar montos', 'Vincular dispositivos con código y aviso de nueva versión'] },
   { v: '1.2.0', f: '13 nov 2026', c: ['Diseño ejecutivo: registros compactos tipo tabla y acento rojo del logo'] },
   { v: '1.1.0', f: '13 nov 2026', c: ['App instalable (PWA) en iPhone, Android y PC con icono propio'] },
@@ -646,6 +647,7 @@ function vCatalogo(){
 function installCard(compact){
   if (window.MODO !== 'pwa' || isStandalone()) return '';
   if (compact && LS.get('gj_hideInstall')) return '';
+  if (!installEvt && !isIOS) return ''; // ya instalada o el navegador no permite instalar
   const body = isIOS ? 'En Safari: <b>Compartir</b> → <b>Agregar a pantalla de inicio</b>.'
     : (installEvt ? 'Instálala para abrirla como aplicación.' : 'En Chrome o Edge: icono <b>Instalar</b> en la barra de direcciones.');
   return `<div class="card" style="display:flex;gap:12px;align-items:center;${compact ? 'margin-bottom:10px' : ''}">${LOGO.replace('class="logo"', 'style="width:38px;height:38px;flex:none;border-radius:9px"')}
