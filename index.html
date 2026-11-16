@@ -1,4 +1,4 @@
-<!-- Gastos Juances v2.1.1 -->
+<!-- Gastos Juances v2.1.2 -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -363,9 +363,10 @@ const fechaHora = iso => iso ? new Date(iso).toLocaleString('es-MX', {day:'numer
 const hora = iso => new Date(iso).toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit'});
 
 /* ================== Versión ================== */
-const APP_VERSION = '2.1.1';
-const APP_FECHA = '14 nov 2026';
+const APP_VERSION = '2.1.2';
+const APP_FECHA = '15 nov 2026';
 const CHANGELOG = [
+  { v: '2.1.2', f: '15 nov 2026', c: ['El correo diario ya no depende de la notificación push: si una falla, la otra sale igual', 'Mensajes claros cuando falta habilitar una API de Google (Drive o Firebase Cloud Messaging)', 'Nuevo menú en la hoja: «Diagnosticar y enviar alertas ahora», que muestra el resultado de cada canal'] },
   { v: '2.1.1', f: '14 nov 2026', c: ['«Por categoría» rediseñado: cada categoría agrupa sus registros del mes (se abre y cierra con un toque), con total, pagado, saldo y barra de presupuesto', 'Vista por categoría también para ingresos', 'Si una sección falla, se muestra el detalle del error en lugar de quedar en blanco'] },
   { v: '2.1.0', f: '14 nov 2026', c: ['Nueva pestaña Planes: tarjetas de crédito (corte, pago, límite) y apartados o compras a meses (total, mensualidad, avance y mes en que terminas)', 'Presupuesto mensual por categoría con barras y avisos al 80% y al 100%', 'Comprobantes: adjunta fotos o PDF a cada pago; se guardan en tu Google Drive', 'Exportar el mes a PDF: descargar o enviar a tu correo', 'Respaldo automático semanal de la hoja en Drive (y respaldo manual para el administrador)', 'Alertas de fecha de corte y de presupuesto excedido en la campana, la notificación y el correo'] },
   { v: '2.0.1', f: '13 nov 2026', c: ['Tus registros anteriores se ligan solos a la cuenta del administrador y se quitan los duplicados del espacio en blanco', 'Nuevo menú en la hoja: «Ligar mis datos a mi cuenta (reparar)»', 'La tarjeta «Instalar aplicación» solo aparece cuando de verdad se puede instalar'] },
