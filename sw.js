@@ -1,5 +1,5 @@
-/* Gastos Juances v2.1.2 · service worker: instalación, sin conexión, notificaciones y actualizaciones */
-const CACHE = 'gastos-juances-2.1.2';
+/* Gastos Juances v2.1.3 · service worker: instalación, sin conexión, notificaciones y actualizaciones */
+const CACHE = 'gastos-juances-2.1.3';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'favicon.svg', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png', 'favicon-32.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => Promise.all(SHELL.map(u => c.add(u).catch(() => null))))); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
