@@ -1,4 +1,4 @@
-<!-- Gastos Juances v2.1.2 -->
+<!-- Gastos Juances v2.1.3 -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -315,6 +315,22 @@ a.btn{text-decoration:none}
 .gpres{display:block;margin:-4px 14px 8px auto;font-size:12px;font-weight:600;color:var(--accent)}
 .glist{border-top:1px solid var(--line2)}
 .glist .row:first-child{border-top:0}
+.busy{position:fixed;inset:0;z-index:90;display:grid;place-items:center;background:rgba(10,11,14,.28);backdrop-filter:blur(1px);-webkit-backdrop-filter:blur(1px);opacity:0;pointer-events:none;transition:opacity .18s}
+.busy.on{opacity:1;pointer-events:auto}
+.bcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 26px 18px;width:min(280px,82vw);text-align:center;box-shadow:0 18px 50px rgba(0,0,0,.22);transform:scale(.96);transition:transform .18s}
+.busy.on .bcard{transform:none}
+.bmark{position:relative;width:64px;height:64px;margin:0 auto 12px}
+.bmark svg{position:absolute;inset:0;width:64px;height:64px}
+.bring{animation:rot 1s linear infinite}
+.blogo{position:absolute;inset:14px;border-radius:9px;background:center/cover no-repeat}
+.bok,.bbad{opacity:0;transform:scale(.6);transition:all .2s}
+.busy.ok .bok,.busy.bad .bbad{opacity:1;transform:none}
+.busy.ok .bring,.busy.ok .blogo,.busy.bad .bring,.busy.bad .blogo{opacity:0}
+.btxt{font-weight:700;font-size:15px}
+.bsub{font-size:12px;color:var(--muted);margin-top:3px}
+.bbar{height:4px;border-radius:4px;background:var(--line);overflow:hidden;margin-top:14px}
+.bbar span{display:block;height:100%;width:0;background:var(--accent);border-radius:4px}
+.busy.ok .bbar span{background:var(--pos)}
 </style>
 </head>
 <body>
@@ -322,6 +338,15 @@ a.btn{text-decoration:none}
 <div class="ov" id="ov" data-act="closeSheet"></div>
 <div class="sheet" id="sheet"></div>
 <div class="toast" id="toast"></div>
+<div class="busy" id="busy" aria-live="polite"><div class="bcard">
+  <div class="bmark"><svg class="bring" viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" fill="none" stroke="var(--line)" stroke-width="4"/><circle class="arc" cx="32" cy="32" r="28" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" stroke-dasharray="60 200"/></svg>
+    <div class="blogo"></div>
+    <svg class="bok" viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" fill="var(--pos)"/><path d="M20 33l8 8 16-17" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <svg class="bbad" viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" fill="var(--accent)"/><path d="M23 23l18 18M41 23L23 41" stroke="#fff" stroke-width="5" stroke-linecap="round"/></svg></div>
+  <div class="btxt" id="busyTxt">Guardando…</div>
+  <div class="bsub" id="busySub">Sincronizando con Google Drive</div>
+  <div class="bbar"><span id="busyBar"></span></div>
+</div></div>
 
 <script>
 window.MODO='pwa';
@@ -363,9 +388,10 @@ const fechaHora = iso => iso ? new Date(iso).toLocaleString('es-MX', {day:'numer
 const hora = iso => new Date(iso).toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit'});
 
 /* ================== Versión ================== */
-const APP_VERSION = '2.1.2';
-const APP_FECHA = '15 nov 2026';
+const APP_VERSION = '2.1.3';
+const APP_FECHA = '16 nov 2026';
 const CHANGELOG = [
+  { v: '2.1.3', f: '16 nov 2026', c: ['Indicador de progreso al guardar: tarjeta con anillo, barra de avance y lo que se está haciendo; termina con «Guardado» en verde o el aviso de error', 'Si Google tarda más de 6 segundos, el indicador muestra cuánto lleva esperando'] },
   { v: '2.1.2', f: '15 nov 2026', c: ['El correo diario ya no depende de la notificación push: si una falla, la otra sale igual', 'Mensajes claros cuando falta habilitar una API de Google (Drive o Firebase Cloud Messaging)', 'Nuevo menú en la hoja: «Diagnosticar y enviar alertas ahora», que muestra el resultado de cada canal'] },
   { v: '2.1.1', f: '14 nov 2026', c: ['«Por categoría» rediseñado: cada categoría agrupa sus registros del mes (se abre y cierra con un toque), con total, pagado, saldo y barra de presupuesto', 'Vista por categoría también para ingresos', 'Si una sección falla, se muestra el detalle del error en lugar de quedar en blanco'] },
   { v: '2.1.0', f: '14 nov 2026', c: ['Nueva pestaña Planes: tarjetas de crédito (corte, pago, límite) y apartados o compras a meses (total, mensualidad, avance y mes en que terminas)', 'Presupuesto mensual por categoría con barras y avisos al 80% y al 100%', 'Comprobantes: adjunta fotos o PDF a cada pago; se guardan en tu Google Drive', 'Exportar el mes a PDF: descargar o enviar a tu correo', 'Respaldo automático semanal de la hoja en Drive (y respaldo manual para el administrador)', 'Alertas de fecha de corte y de presupuesto excedido en la campana, la notificación y el correo'] },
@@ -386,7 +412,7 @@ function dispositivo(){ const u = navigator.userAgent; const so = /iPhone/.test(
   return so + (nav ? ' · ' + nav : '') + (isStandalone() ? ' · app' : ''); }
 async function rpc(fn, ...args){
   if (window.MODO === 'demo') {
-    await new Promise(r => setTimeout(r, 120));
+    await new Promise(r => setTimeout(r, fn === 'estado' || fn === 'version' || fn === 'publico' ? 120 : 900));
     try { if (fn === 'publico') return publicoGlobal_(); if (fn === 'logout') return true; return JSON.parse(JSON.stringify(RPC_[fn](...args))); }
     catch(e) { throw new Error(e.message); }
   }
@@ -882,7 +908,7 @@ function sheetUsuario(u){
 }
 async function sheetVincular(){
   openSheet(`<h2>Vincular otro dispositivo</h2><p class="lead">Úsalo si en otro dispositivo no puedes iniciar sesión con Google (por ejemplo, la app instalada en el iPhone).</p><div class="empty"><div class="spin" style="margin:auto"></div></div>`);
-  try { const r = await rpc('codigoVinculacion');
+  try { const r = await conProgreso('codigoVinculacion', () => rpc('codigoVinculacion'), 'Código listo');
     $('#sheet').innerHTML = `<div class="grab"></div><h2>Vincular otro dispositivo</h2><p class="lead">En el otro dispositivo abre la app, toca «Tengo un código de vinculación» y escribe:</p>
       <div class="pair num">${r.codigo.slice(0, 3)} ${r.codigo.slice(3)}</div><p class="mut" style="text-align:center;font-size:12.5px">Válido ${r.minutos} minutos · un solo uso</p>
       <div class="acts"><button class="btn ghost" data-act="closeSheet">Listo</button></div>`;
@@ -990,11 +1016,37 @@ function sheetPin(){
 /* ================== Acciones ================== */
 function seguro(el, txt){ if (el.dataset.armed === '1') return true; el.dataset.armed = '1'; const t = el.textContent; el.textContent = txt || '¿Seguro? Toca otra vez';
   setTimeout(() => { el.dataset.armed = ''; el.textContent = t; }, 3500); return false; }
+const ETIQ = { guardarMov:'Guardando cambios', borrarMov:'Eliminando registro', agregarAbono:'Registrando abono', borrarAbono:'Eliminando abono', liquidar:'Registrando pago',
+  copiarAnterior:'Copiando montos', cerrarMes:'Cerrando mes', reabrirMes:'Reabriendo mes', generarMes:'Generando mes', guardarConcepto:'Guardando concepto', borrarConcepto:'Eliminando concepto',
+  guardarCategoria:'Guardando categoría', borrarCategoria:'Eliminando categoría', guardarConfig:'Guardando ajustes', guardarUsuario:'Guardando usuario', guardarGlobal:'Guardando integraciones',
+  registrarDispositivo:'Activando notificaciones', guardarPresupuesto:'Guardando presupuesto', guardarPlan:'Guardando plan', borrarPlan:'Eliminando plan',
+  subirComprobante:'Subiendo comprobante', borrarComprobante:'Eliminando comprobante', respaldarAhora:'Creando respaldo', exportarPDF:'Generando PDF', verComprobante:'Abriendo comprobante',
+  codigoVinculacion:'Generando código', probarPush:'Enviando prueba', login:'Iniciando sesión', vincular:'Vinculando dispositivo', logout:'Cerrando sesión' };
+let busyT = null, busyP = 0, busyIni = 0;
+function busyOn(fn, sub){
+  const b = $('#busy'); if (!b) return;
+  const lg = b.querySelector('.blogo'); if (lg && !lg.style.backgroundImage) lg.style.backgroundImage = 'url("data:image/svg+xml;utf8,' + encodeURIComponent(LOGO.replace('class="logo"', 'xmlns="http://www.w3.org/2000/svg"')) + '")';
+  $('#busyTxt').textContent = (ETIQ[fn] || fn || 'Guardando') + '…';
+  $('#busySub').textContent = sub || (window.MODO === 'demo' ? 'Vista previa' : 'Sincronizando con Google Drive');
+  b.classList.remove('ok', 'bad'); b.classList.add('on');
+  busyP = 0; busyIni = Date.now(); clearInterval(busyT);
+  const bar = $('#busyBar'); bar.style.transition = 'none'; bar.style.width = '0%';
+  busyT = setInterval(() => { busyP += (92 - busyP) * 0.06; bar.style.transition = 'width .25s linear'; bar.style.width = busyP.toFixed(1) + '%';
+    const seg = (Date.now() - busyIni) / 1000; if (seg > 6) $('#busySub').textContent = 'Google está tardando un poco más… ' + Math.round(seg) + ' s'; }, 200);
+}
+function busyOff(ok, txt){
+  const b = $('#busy'); if (!b) return; clearInterval(busyT);
+  const bar = $('#busyBar'); bar.style.transition = 'width .2s'; bar.style.width = '100%';
+  b.classList.add(ok ? 'ok' : 'bad'); $('#busyTxt').textContent = txt || (ok ? 'Guardado' : 'No se pudo guardar'); $('#busySub').textContent = ok ? 'Listo · ' + ((Date.now() - busyIni) / 1000).toFixed(1) + ' s' : 'Revisa el mensaje';
+  setTimeout(() => b.classList.remove('on', 'ok', 'bad'), ok ? 650 : 1100);
+}
+async function conProgreso(fn, tarea, okTxt){ busyOn(fn); try { const r = await tarea(); busyOff(true, okTxt); return r; } catch(e) { busyOff(false); throw e; } }
 async function call(fn, ...args){
   if (UI.busy) return false; UI.busy = true;
   const b = document.querySelector('#sheet [data-act="submit"]'); if (b) { b.disabled = true; b.dataset.t = b.textContent; b.textContent = 'Guardando…'; }
-  try { const r = await rpc(fn, ...args); setState(r); return true; }
-  catch(e) { toast(e.message, true); if (e.offline) { UI.online = false; renderSync(); } return false; }
+  busyOn(fn);
+  try { const r = await rpc(fn, ...args); setState(r); busyOff(true, fn === 'exportarPDF' ? 'Listo' : (/^borrar|^eliminar/i.test(fn) ? 'Eliminado' : 'Guardado')); return true; }
+  catch(e) { busyOff(false); toast(e.message, true); if (e.offline) { UI.online = false; renderSync(); } return false; }
   finally { UI.busy = false; if (b) { b.disabled = false; b.textContent = b.dataset.t; } }
 }
 function setState(r){ S = r; UI.online = true; UI.sync = new Date().toISOString(); if (window.MODO !== 'demo') LS.set('gj_cache', r); render(); }
@@ -1052,7 +1104,7 @@ Object.assign(ACT, {
   vincular: () => sheetVincular(),
   logout: async (d, el) => { if (!seguro(el, 'Toca otra vez para salir')) return; try { await rpc('logout'); } catch(e) {} LS.del('gj_sesion'); LS.del('gj_cache'); LS.del('gj_push'); location.hash = ''; location.reload(); },
   activarPush: () => activarPush(),
-  probarPush: async () => { try { toast('Enviando prueba…'); await rpc('probarPush'); toast('Prueba enviada: revisa tu celular'); } catch(e) { toast(e.message, true); } },
+  probarPush: async () => { try { await conProgreso('probarPush', () => rpc('probarPush'), 'Prueba enviada'); toast('Prueba enviada: revisa tu celular'); } catch(e) { toast(e.message, true); } },
   swAlerta: async (d, el) => { const on = !el.classList.contains('on'); el.classList.toggle('on', on); await call('guardarConfig', { [d.k]: on }); },
   adminTab: d => { UI.adminTab = d.t; render(); },
   nuevoUsr: () => sheetUsuario(null),
@@ -1176,12 +1228,12 @@ function leerArchivo(file){
 document.addEventListener('change', async e => {
   if (e.target.id !== 'compFile' || !e.target.files[0]) return;
   const id = sheetMov.cur && sheetMov.cur.id; if (!id) return;
-  try { toast('Subiendo comprobante…'); const f = await leerArchivo(e.target.files[0]);
+  try { const f = await leerArchivo(e.target.files[0]);
     if (await call('subirComprobante', id, f.nombre, f.mime, f.b64)) { reabrirMovSheet(id); toast('Comprobante guardado en Drive'); } }
   catch(err) { toast(err.message, true); }
 });
 async function verComprobante(id){
-  try { toast('Abriendo…'); const r = await rpc('verComprobante', id);
+  try { const r = await conProgreso('verComprobante', () => rpc('verComprobante', id), 'Listo');
     const bin = atob(r.base64), u8 = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
     const url = URL.createObjectURL(new Blob([u8], { type: r.mime }));
     const vuelta = sheetMov.cur ? sheetMov.cur.id : null;
@@ -1199,7 +1251,7 @@ function sheetExportar(){
 }
 async function exportarPDF(enviar){
   const mes = UI.mes;
-  try { toast(enviar ? 'Enviando…' : 'Generando PDF…'); const r = await rpc('exportarPDF', mes, !!enviar);
+  try { const r = await conProgreso('exportarPDF', () => rpc('exportarPDF', mes, !!enviar), enviar ? 'Enviado' : 'PDF listo');
     if (r.enviado) { closeSheet(); return toast('PDF enviado a ' + r.a); }
     if (r.html) { const w = $('#sheet'); w.innerHTML = '<div class="grab"></div><h2>Vista del reporte</h2><p class="lead">En la vista previa se muestra el contenido; en tu app se descarga como PDF.</p><iframe class="compview" style="height:60vh;background:#fff"></iframe><div class="acts"><button class="btn ghost" data-act="closeSheet">Cerrar</button></div>'; w.querySelector('iframe').srcdoc = r.html; return; }
     const bin = atob(r.base64), u8 = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
@@ -1275,7 +1327,7 @@ async function pantallaLogin(error){
   } catch(e) { $('#gbtn').innerHTML = `<p class="neg">${esc(e.offline ? 'Sin conexión con el servidor.' : e.message)}</p>`; }
 }
 async function entrarCon(fn, valor){
-  try { const r = await rpc(fn, valor, dispositivo()); LS.set('gj_sesion', r.sesion); shell(); setState(r.estado); toast('Bienvenido' + (r.estado.yo.nombre ? ', ' + r.estado.yo.nombre.split(' ')[0] : '')); refrescarPush(); }
+  try { const r = await conProgreso(fn, () => rpc(fn, valor, dispositivo()), 'Bienvenido'); LS.set('gj_sesion', r.sesion); shell(); setState(r.estado); toast('Bienvenido' + (r.estado.yo.nombre ? ', ' + r.estado.yo.nombre.split(' ')[0] : '')); refrescarPush(); }
   catch(e) { pantallaLogin(e.message); }
 }
 ACT.vincularCodigo = () => { const c = val('pcode').replace(/\D/g, ''); if (c.length !== 6) return toast('Escribe los 6 dígitos', true); entrarCon('vincular', c); };
