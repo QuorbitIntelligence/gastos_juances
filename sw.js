@@ -1,5 +1,5 @@
-/* Gastos Juances v2.1.3 · service worker: instalación, sin conexión, notificaciones y actualizaciones */
-const CACHE = 'gastos-juances-2.1.3';
+/* Gastos Juances v2.2.0 · service worker: instalación, sin conexión, notificaciones y actualizaciones */
+const CACHE = 'gastos-juances-2.2.0';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'favicon.svg', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png', 'favicon-32.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => Promise.all(SHELL.map(u => c.add(u).catch(() => null))))); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
@@ -16,14 +16,16 @@ self.addEventListener('push', e => {
   const title = nn.title || dd.title || 'Gastos Juances', body = nn.body || dd.body || '';
   const count = parseInt(dd.count || '0', 10);
   e.waitUntil(Promise.all([
-    self.registration.showNotification(title, { body, icon: 'icon-192.png', badge: 'favicon-32.png', tag: 'gj-alerta', renotify: true, data: { url: dd.url || './' } }),
+    self.registration.showNotification(title, { body, icon: 'icon-192.png', badge: 'favicon-32.png', tag: dd.tag || 'gj-alerta', renotify: true, data: { url: dd.url || './' } }),
     (self.navigator && self.navigator.setAppBadge && count) ? self.navigator.setAppBadge(count).catch(() => {}) : Promise.resolve()
   ]));
 });
 self.addEventListener('notificationclick', e => {
   e.notification.close();
+  const url = (e.notification.data && e.notification.data.url) || './';
+  const aprobar = /#aprobar/.test(url);
   e.waitUntil(clients.matchAll({ type: 'window', includeUncontrolled: true }).then(ws => {
-    for (const w of ws) { if ('focus' in w) return w.focus(); }
-    return clients.openWindow('./');
+    for (const w of ws) { if ('focus' in w) { if (aprobar) w.postMessage({ ir: 'aprobar' }); return w.focus(); } }
+    return clients.openWindow(aprobar ? './#aprobar' : './');
   }));
 });
