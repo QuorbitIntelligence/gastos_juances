@@ -1,4 +1,4 @@
-<!-- Gastos Juances v2.3.0 -->
+<!-- Gastos Juances v2.4.0 -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -415,9 +415,10 @@ const fechaHora = iso => iso ? new Date(iso).toLocaleString('es-MX', {day:'numer
 const hora = iso => new Date(iso).toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit'});
 
 /* ================== Versión ================== */
-const APP_VERSION = '2.3.0';
+const APP_VERSION = '2.4.0';
 const APP_FECHA = '17 nov 2026';
 const CHANGELOG = [
+  { v: '2.4.0', f: '17 nov 2026', c: ['El pago de cada tarjeta en Mes se arma solo con la suma de sus compras de ese mes; ya no usa un monto fijo ni el del mes anterior', 'Si una tarjeta no tiene compras en un mes no aparece su línea; puedes capturar un pago a mano', 'Pagar más de lo que suman las compras se anota como «pagado de más» (atrasados o compras aún sin capturar), sin alertas', 'Planes: resumen de adeudo total, pago de este mes y del siguiente, límite usado y disponible, y totales por tarjeta', 'Al dar de alta una tarjeta ya no se liga un concepto'] },
   { v: '2.3.0', f: '17 nov 2026', c: ['Compras a meses dentro de la tarjeta: ya no se capturan en Mes; van como desglose dentro del pago de la tarjeta (sin doble conteo)', 'Fecha de compra: el primer pago se calcula con el día de corte y el día límite de la tarjeta (ej. compra el 18 nov con corte 14 → se paga en enero)', 'Avance automático: cada mensualidad cuenta como pagada cuando la tarjeta de ese mes queda Pagada; también se puede marcar a mano', 'Pagos ya hechos como número de mensualidades, con sugerencia según la fecha', 'Planes ordenado por tarjeta (con total a meses del mes y deuda restante) o por concepto con buscador', 'Comprobante (ticket o voucher) en cada compra a meses o apartado', 'Conversión: al pasar una compra existente a «dentro de la tarjeta» se quitan sus partidas de los meses abiertos'] },
   { v: '2.2.0', f: '17 nov 2026', c: ['Registro con aprobación: quien entra con su Gmail queda como Usuario pendiente y el administrador recibe un push y un correo para aprobar o rechazar', 'Avisos push por partida: 3, 2 y 1 días antes, el día del vencimiento y cada día de atraso con su contador', 'Correo de resumen diario siempre (con o sin pagos pendientes) con el estado del mes', 'Los avisos se revisan cada hora y se envían una vez al día: si una hora falla, la siguiente lo recupera; el activador se repara solo', 'Ventana emergente de nueva versión con botón Actualizar ahora', 'Administración → Sistema: estado de los avisos y botón «Enviar ahora»'] },
   { v: '2.1.3', f: '16 nov 2026', c: ['Indicador de progreso al guardar: tarjeta con anillo, barra de avance y lo que se está haciendo; termina con «Guardado» en verde o el aviso de error', 'Si Google tarda más de 6 segundos, el indicador muestra cuánto lleva esperando'] },
@@ -492,7 +493,7 @@ function calc(mes){
   const esperado = sum(ing, m => n(m.monto)) + proyIng, cobrado = sum(ing, aplicado);
   const gastos = sum(gas, m => n(m.monto)) + proyGas, pagado = sum(gas, aplicado);
   const transferido = sum(gas.filter(m => m.estatus === 'Transferir'), saldo);
-  const pendiente = sum(gas, saldo) - transferido + proyGas;
+  const pendiente = sum(gas, m => Math.max(0, saldo(m))) - transferido + proyGas;
   const debe = esperado - pagado - pendiente, real = cobrado - pagado;
   const base = gastos - transferido, avance = base <= 0 ? 0 : Math.min(1, pagado / base);
   const sems = gas.map(semaforo);
@@ -697,13 +698,13 @@ function vMes(){
 }
 function itemHTML(m){
   const s = semaforo(m), ap = aplicado(m), sd = saldo(m), sinM = m.monto === '';
-  const meta = [m.categoria, n(m.dia) ? 'día ' + n(m.dia) : '', sinM && m.mesAnterior !== '' ? 'ant. ' + fmt(m.mesAnterior) : '', !sinM && sd !== 0 && s.k !== 'ok' ? 'saldo ' + fmt(sd) : '', m.notas ? '✎' : '', comprobantesDe(m.id).length ? '📎' + comprobantesDe(m.id).length : '', (() => { const t = tarjetaDeConcepto(m.concepto); if (!t) return ''; const l = msiDelMes(t, m.mes); return l.length ? 'incluye ' + l.length + ' a meses ' + fmt(sum(l, x => x.i.men)) : ''; })()].filter(Boolean).join(' · ');
+  const meta = [m.categoria, n(m.dia) ? 'día ' + n(m.dia) : '', sinM && m.mesAnterior !== '' ? 'ant. ' + fmt(m.mesAnterior) : '', !sinM && sd !== 0 && s.k !== 'ok' ? 'saldo ' + fmt(sd) : '', !sinM && sd < 0 ? 'pagado de más ' + fmt(-sd) : '', m.notas ? '✎' : '', comprobantesDe(m.id).length ? '📎' + comprobantesDe(m.id).length : '', (() => { const t = tarjetaDeConcepto(m.concepto); if (!t) return ''; const l = msiDelMes(t, m.mes); return l.length ? 'incluye ' + l.length + ' a meses ' + fmt(sum(l, x => x.i.men)) : ''; })()].filter(Boolean).join(' · ');
   return `<button class="row" data-act="editMov" data-id="${m.id}">
     <span class="con">${esc(m.concepto)}${m.origen === 'transferido' ? '<span class="tag">Transf.</span>' : ''}</span>
     <span class="meta">${esc(meta)}</span>
     <span class="cat">${esc(m.categoria)}</span><span class="dia num">${n(m.dia) || ''}</span>
     <span class="mon num">${sinM ? '—' : fmt(m.monto, true)}</span>
-    <span class="pag num">${ap ? fmt(ap, true) : '—'}</span><span class="sal num">${sinM ? '' : fmt(sd, true)}</span>
+    <span class="pag num">${ap ? fmt(ap, true) : '—'}</span><span class="sal num">${sinM ? '' : fmt(Math.max(0, sd), true)}</span>
     <span class="st"><span class="pill c-${s.c}">${s.t.replace(/^[●○◐✔➜] /, '')}</span></span>
   </button>`;
 }
@@ -713,7 +714,7 @@ function vCategoriasMes(c){
   const grupos = {};
   base.forEach(m => { const k = m.categoria || (T === 'Gasto' ? 'Otros' : 'Otros ingresos'); (grupos[k] = grupos[k] || []).push(m); });
   if (T === 'Gasto') Object.keys(P).forEach(k => { if (P[k].tope && !grupos[k]) grupos[k] = []; });
-  const filas = Object.entries(grupos).map(([k, l]) => { const t = sum(l, m => n(m.monto)), p = sum(l, aplicado), sd = sum(l.filter(m => m.monto !== '' && m.estatus !== 'Transferir'), saldo);
+  const filas = Object.entries(grupos).map(([k, l]) => { const t = sum(l, m => n(m.monto)), p = sum(l, aplicado), sd = sum(l.filter(m => m.monto !== '' && m.estatus !== 'Transferir'), m => Math.max(0, saldo(m)));
     const tope = P[k] ? P[k].tope : 0; return { k, l, t, p, sd, tope, pct: tope ? t / tope : 0 }; })
     .sort((a, b) => b.t - a.t || a.k.localeCompare(b.k));
   const totT = sum(filas, f => f.t) || 1, conTope = filas.filter(f => f.tope);
@@ -892,7 +893,7 @@ function sheetMov(m, tipoNuevo){
     <div class="row2">
       <div class="f"><label>Monto</label><input id="mMonto" inputmode="decimal" value="${esc(m.monto)}" ${dis} placeholder="$0"></div>
       ${nuevo ? `<div class="f"><label>${L.ab} inicial</label><input id="mAb" inputmode="decimal" value="" ${dis} placeholder="$0"></div>`
-        : `<div class="f"><label>${L.ab} · saldo</label><div class="ro num">${fmt(aplicado(m), true)} <span class="mut">· ${m.monto === '' ? '—' : fmt(sd, true)}</span></div></div>`}
+        : `<div class="f"><label>${L.ab} · saldo</label><div class="ro num">${fmt(aplicado(m), true)} <span class="mut">· ${m.monto === '' ? '—' : sd < 0 ? 'pagado de más ' + fmt(-sd, true) : fmt(sd, true)}</span></div></div>`}
     </div>
     ${m.mesAnterior !== '' ? `<div class="f"><div class="hint">Mes anterior: <b class="num">${fmt(m.mesAnterior)}</b>${ed ? '<button data-act="usarAnt">Usar este monto</button>' : ''}</div></div>` : ''}
     ${!nuevo ? `<div class="f"><label>Historial de ${G ? 'abonos' : 'cobros'}</label>
@@ -1356,6 +1357,40 @@ function msiDelMes(t, mes){
 function tarjetaDeConcepto(concepto){ return (S.planes || []).find(t => t.tipo === 'Tarjeta' && t.concepto === concepto); }
 function fechaPagoTxt(t, mes){ const d = n(t && t.diaPago); if (!d) return etq(mes); const [y, m] = mes.split('-').map(Number); return Math.min(d, new Date(y, m, 0).getDate()) + ' ' + MC[m - 1].toLowerCase() + ' ' + y; }
 
+function resumenTarjeta(t){
+  const hoy = mesHoy(), sig = sumarMes(hoy, 1);
+  const mios = (S.planes || []).filter(p => esMsi(p) && p.tarjetaId === t.id).sort((a, b) => (msiInfo(a).liquidado - msiInfo(b).liquidado) || (msiInfo(a).termina < msiInfo(b).termina ? -1 : 1));
+  const activas = mios.filter(p => p.activo !== 'No');
+  const deuda = sum(activas, p => msiInfo(p).restante);
+  const act = sum(msiDelMes(t, hoy), x => x.i.men), cargoSig = sum(msiDelMes(t, sig), x => x.i.men);
+  const fin = activas.map(p => msiInfo(p)).filter(i => !i.liquidado).map(i => i.termina).sort().pop() || '';
+  return { mios, deuda, act, cargoSig, sig, limite: n(t.limite), vivas: activas.filter(p => !msiInfo(p).liquidado).length, fin };
+}
+function resumenDeudaHTML(tj, dir){
+  if (!tj.length && !dir.length) return '';
+  const hoy = mesHoy(), sig = sumarMes(hoy, 1), rs = tj.map(t => ({ t, r: resumenTarjeta(t) }));
+  const dDir = sum(dir.filter(p => p.activo !== 'No'), p => planInfo(p).restante);
+  const deudaT = sum(rs, x => x.r.deuda), total = deudaT + dDir;
+  const pagoAct = sum(rs, x => x.r.act) + sum(dir.filter(p => p.activo !== 'No' && planInfo(p).restante > 0), p => n(p.mensualidad));
+  const pagoSig = sum(rs, x => x.r.cargoSig);
+  const conLim = rs.filter(x => x.r.limite), lim = sum(conLim, x => x.r.limite), usadoLim = sum(conLim, x => x.r.deuda);
+  const fin = rs.map(x => x.r.fin).filter(Boolean).sort().pop();
+  const pct = lim ? usadoLim / lim : 0, cls = !lim ? '' : pct >= .7 ? 'over' : pct >= .4 ? 'near' : 'okb';
+  const fila = (nom, v, extra) => `<div class="abr"><span>${nom}${extra ? ` <span class="mut">· ${extra}</span>` : ''}</span><b class="num">${fmt(v, true)}</b><span></span></div>`;
+  return `<div class="grupo ${cls}" style="margin-top:12px">
+    <div class="ghd" style="cursor:default">
+      <span class="gnm" style="font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)">Adeudo total</span>
+      <b class="num" style="font-size:22px">${fmt(total, true)}</b>
+      <span class="gmeta">${tj.length} ${tj.length === 1 ? 'tarjeta' : 'tarjetas'}${dir.length ? ' y ' + dir.length + (dir.length === 1 ? ' apartado' : ' apartados') : ''} · solo lo que tienes capturado${fin ? ' · terminas de pagar ' + etq(fin).toLowerCase() : ''}</span>
+      ${lim ? `<span class="gmeta num">Límite total ${fmt(lim, true)} · usado ${Math.round(pct * 100)}% · disponible <b style="color:var(--ink)">${fmt(lim - usadoLim, true)}</b></span><span class="gbar"><span style="width:${Math.min(100, Math.round(pct * 100))}%"></span></span>` : ''}
+    </div>
+    <div class="kpis" style="margin:0;border:0;border-top:1px solid var(--line2);border-radius:0">${kpi('Pago ' + etq(hoy).toLowerCase(), fmt(pagoAct, true), 'compras de este mes')}${kpi('Pago ' + etq(sig).toLowerCase(), fmt(pagoSig, true), 'según lo capturado')}</div>
+    <div class="abonos" style="border:0;border-top:1px solid var(--line2);border-radius:0">
+      ${rs.map(x => fila(esc(x.t.nombre), x.r.deuda, x.r.limite ? Math.round(x.r.deuda / x.r.limite * 100) + '% del límite' : x.r.vivas + (x.r.vivas === 1 ? ' compra' : ' compras'))).join('')}
+      ${dir.length ? fila('Apartados · pago directo', dDir, dir.length + (dir.length === 1 ? ' apartado' : ' apartados')) : ''}
+    </div>
+  </div>`;
+}
 function vPlanes(){
   const tj = (S.planes || []).filter(p => p.tipo === 'Tarjeta'), msi = (S.planes || []).filter(esMsi), dir = (S.planes || []).filter(p => p.tipo === 'Apartado' && !esMsi(p));
   const orden = UI.planOrden || 'tarjeta', hoy = mesHoy(), fd = f => f ? f.toLocaleDateString('es-MX', {day:'numeric', month:'short'}) : '—';
@@ -1373,18 +1408,19 @@ function vPlanes(){
       <span class="bar pb"><span style="width:${Math.round(i.pct * 100)}%;${i.liquidado ? 'background:var(--pos)' : ''}"></span></span></button>`; };
   let cuerpo = '';
   if (orden === 'tarjeta') {
-    cuerpo = tj.map(t => { const mios = msi.filter(p => p.tarjetaId === t.id).sort((a, b) => (msiInfo(a).liquidado - msiInfo(b).liquidado) || (msiInfo(a).termina < msiInfo(b).termina ? -1 : 1));
-      const delMes = msiDelMes(t, hoy), cargoMes = sum(delMes, x => x.i.men), deuda = sum(mios, p => msiInfo(p).restante), lin = lineaTarjeta(t, hoy), i = planInfo(t);
-      return `<div class="grupo">
+    cuerpo = tj.map(t => { const r = resumenTarjeta(t), mios = r.mios, lin = lineaTarjeta(t, hoy), i = planInfo(t);
+      const pct = r.limite ? r.deuda / r.limite : 0, cls = !r.limite ? '' : pct >= .7 ? 'over' : pct >= .4 ? 'near' : 'okb';
+      return `<div class="grupo ${cls}">
         <button class="ghd" data-act="editPlan" data-id="${t.id}">
           <span class="gnm">${IC.card.replace('<svg', '<svg style="width:18px;height:18px;color:var(--accent)"')} ${esc(t.nombre)}${t.activo === 'No' ? ' <span class="tag" style="color:var(--faint)">Inactiva</span>' : ''}</span>
-          <b class="num">${lin && lin.monto !== '' ? fmt(lin.monto, true) : '—'}</b>
+          <b class="num">${fmt(r.deuda, true)}<small class="mut" style="display:block;font-size:10.5px;font-weight:500;text-align:right">adeudo</small></b>
           <span class="gmeta">Corte ${n(t.diaCorte) || '—'} · pago ${n(t.diaPago) || '—'} · próximo corte ${fd(i.corte)}${lin ? ' · ' + etq(hoy) + ': ' + semaforo(lin).t.replace(/^[●○◐✔➜] /, '') : ''}</span>
-          <span class="gmeta num">A meses este mes <b style="color:var(--ink)">${fmt(cargoMes, true)}</b> (${delMes.length}) · deuda a meses <b style="color:var(--ink)">${fmt(deuda, true)}</b></span>
+          <span class="gmeta num">Pago ${etq(hoy).toLowerCase()} <b style="color:var(--ink)">${fmt(r.act, true)}</b> · ${etq(r.sig).toLowerCase()} <b style="color:var(--ink)">${fmt(r.cargoSig, true)}</b> · ${r.vivas} ${r.vivas === 1 ? 'compra activa' : 'compras activas'}</span>
+          ${r.limite ? `<span class="gmeta num">Límite ${fmt(r.limite, true)} · usado ${Math.round(pct * 100)}% · disponible <b style="color:var(--ink)">${fmt(r.limite - r.deuda, true)}</b></span><span class="gbar"><span style="width:${Math.min(100, Math.round(pct * 100))}%"></span></span>` : ''}
         </button>
-        <button class="gpres" data-act="nuevoMsi" data-t="${t.id}">＋ Compra a meses en esta tarjeta</button>
-        ${mios.length ? `<div class="glist">${mios.map(filaMsi).join('')}</div>` : '<div class="empty" style="padding:10px;font-size:12.5px">Sin compras a meses en esta tarjeta.</div>'}
-      </div>`; }).join('') || `<div class="card empty" style="padding:16px">Primero agrega tus tarjetas (corte y día de pago); luego registras sus compras a meses.</div>`;
+        <button class="gpres" data-act="nuevoMsi" data-t="${t.id}">＋ Compra en esta tarjeta</button>
+        ${mios.length ? `<div class="glist">${mios.map(filaMsi).join('')}</div>` : '<div class="empty" style="padding:10px;font-size:12.5px">Sin compras registradas en esta tarjeta.</div>'}
+      </div>`; }).join('') || `<div class="card empty" style="padding:16px">Primero agrega tus tarjetas (corte y día de pago); luego registras sus compras.</div>`;
     const huerf = msi.filter(p => !tarjetaDe(p));
     if (huerf.length) cuerpo += `<div class="sec">Compras sin tarjeta válida</div><div class="rows">${huerf.map(filaMsi).join('')}</div>`;
   } else {
@@ -1400,6 +1436,7 @@ function vPlanes(){
     <div class="filters" style="margin:0;flex:1"><button class="chip f ${orden === 'tarjeta' ? 'on' : ''}" data-act="planOrden" data-t="tarjeta">Por tarjeta</button><button class="chip f ${orden === 'concepto' ? 'on' : ''}" data-act="planOrden" data-t="concepto">Por concepto</button></div>
     <button class="link" style="color:var(--accent);font-weight:600;font-size:13px" data-act="nuevoPlan" data-t="Tarjeta">＋ Tarjeta</button>
   </div>
+  ${resumenDeudaHTML(tj, dir)}
   ${cuerpo}
   ${orden === 'tarjeta' ? `<div class="sec">Apartados · pago directo · ${dir.length} <button class="link" data-act="nuevoPlan" data-t="Apartado">Agregar →</button></div>
   ${dir.length ? `<div class="rows">${dir.map(filaDir).join('')}</div>` : `<div class="card empty" style="padding:14px;font-size:12.5px">Apartados en tienda u otros pagos a plazos que no van con tarjeta: tienen su propia línea en cada mes.</div>`}` : ''}`;
@@ -1419,13 +1456,12 @@ function sheetPlan(p, tipoNuevo, tarjetaPre){
       <b>${c.k + 1}</b><span>${MC[+c.mes.slice(5) - 1]} ${c.mes.slice(2, 4)}</span><i>${c.estado === 'pagado' ? (c.origen === 'manual' ? 'Pagado ✎' : c.origen === 'previo' ? 'Previo' : 'Pagado') : c.estado === 'atrasado' ? 'Sin pagar' : c.estado === 'actual' ? 'Este mes' : 'Futuro'}</i></button>`).join('')}</div>
       <div class="hint">Se marcan solas cuando la tarjeta de ese mes queda como <b>Pagada</b>. Toca un mes para marcarlo a mano (pagado, pendiente o automático).</div></div>`; }
   openSheet(`<h2>${nuevo ? (T ? 'Nueva tarjeta' : 'Nueva compra a meses o apartado') : esc(p.nombre)}</h2>
-    <p class="lead">${T ? 'Su pago mensual es una línea en Mes; sus compras a meses se ven como desglose dentro de ese pago.' : M ? 'Va dentro del pago de la tarjeta: no crea línea propia en Mes, así no se cuenta dos veces.' : 'Pago directo (apartado en tienda): tiene su propia línea con la mensualidad en cada mes.'}</p>
+    <p class="lead">${T ? 'Sin monto fijo: su pago de cada mes en Mes se arma solo con la suma de las compras que registres aquí.' : M ? 'Va dentro del pago de la tarjeta: no crea línea propia en Mes, así no se cuenta dos veces.' : 'Pago directo (apartado en tienda): tiene su propia línea con la mensualidad en cada mes.'}</p>
     ${nuevo ? `<div class="seg"><button data-act="planTipo" data-t="Tarjeta" class="${T ? 'on' : ''}">Tarjeta</button><button data-act="planTipo" data-t="Apartado" class="${!T ? 'on' : ''}">Compra a meses / apartado</button></div>` : ''}
     ${!T ? `<div class="f"><label>¿Cómo se paga?</label><div class="seg"><button data-act="planModo" data-t="tarjeta" class="${M ? 'on' : ''}">Dentro de una tarjeta</button><button data-act="planModo" data-t="directo" class="${!M ? 'on' : ''}">Pago directo</button></div></div>` : ''}
     ${!T && M ? `<div class="f"><label>Tarjeta</label><select id="plTj">${tjs.map(t => `<option value="${t.id}" ${t.id === p.tarjetaId ? 'selected' : ''}>${esc(t.nombre)} · corte ${n(t.diaCorte) || '—'} · pago ${n(t.diaPago) || '—'}</option>`).join('') || '<option value="">Primero agrega una tarjeta</option>'}</select></div>` : ''}
     <div class="f"><label>${T ? 'Nombre de la tarjeta' : 'Concepto de la compra'}</label><input id="plNom" value="${esc(p.nombre)}" placeholder="${T ? 'TDC BBVA Sarit' : '2 playeras Adidas · Sears'}"></div>
-    ${T ? `<div class="f"><label>Concepto en Mes (pago de la tarjeta)</label><input id="plCon" list="dlPl" value="${esc(p.concepto)}" placeholder="Igual al nombre, o elige el que ya usas" autocomplete="off"><datalist id="dlPl">${nombres.map(x => `<option value="${esc(x)}">`).join('')}</datalist></div>
-      <div class="row2"><div class="f"><label>Día de corte</label><input id="plCorte" inputmode="numeric" value="${esc(p.diaCorte)}" placeholder="1–31"></div><div class="f"><label>Día límite de pago</label><input id="plPago" inputmode="numeric" value="${esc(p.diaPago)}" placeholder="1–31"></div></div>
+    ${T ? `<div class="row2"><div class="f"><label>Día de corte</label><input id="plCorte" inputmode="numeric" value="${esc(p.diaCorte)}" placeholder="1–31"></div><div class="f"><label>Día límite de pago</label><input id="plPago" inputmode="numeric" value="${esc(p.diaPago)}" placeholder="1–31"></div></div>
       <div class="f"><label>Límite de crédito (opcional)</label><input id="plLim" inputmode="decimal" value="${esc(p.limite)}"></div>`
     : M ? `<div class="row2"><div class="f"><label>Fecha de compra</label><input id="plFecha" type="date" value="${esc(p.fechaCompra || '')}"></div><div class="f"><label>Total</label><input id="plTot" inputmode="decimal" value="${esc(p.total)}" placeholder="$0"></div></div>
       <div class="row2"><div class="f"><label>Meses</label><input id="plPagos" inputmode="numeric" value="${esc(p.pagos || 1)}" placeholder="1 = una exhibición"></div><div class="f"><label>Mensualidad</label><div class="ro num" id="plMenTxt">—</div></div></div>
@@ -1442,11 +1478,11 @@ function sheetPlan(p, tipoNuevo, tarjetaPre){
       <div class="row2"><div class="f"><label>Primer mes</label><input id="plIni" type="month" value="${esc(p.inicio)}"></div><div class="f"><label>Pagado antes</label><input id="plPrev" inputmode="decimal" value="${esc(p.previo)}" placeholder="$0"></div></div>`}
     <div class="f"><label>Notas</label><input id="plNotas" value="${esc(p.notas)}"></div>
     ${!nuevo && !T ? comprobantesHTML({ id: 'plan:' + p.id }, true) : ''}
-    ${!nuevo ? `<div class="f"><div class="toggle"><span><b>Activo</b><br><span class="mut" style="font-size:13px">${T ? 'Si la desactivas, deja de agregarse a los meses nuevos.' : 'Si lo desactivas, deja de contarse.'}</span></span><button class="sw ${p.activo !== 'No' ? 'on' : ''}" id="plAct" data-act="sw"></button></div></div>` : ''}
+    ${!nuevo ? `<div class="f"><div class="toggle"><span><b>Activo</b><br><span class="mut" style="font-size:13px">${T ? 'Si la desactivas, queda solo como referencia.' : 'Si lo desactivas, deja de contarse.'}</span></span><button class="sw ${p.activo !== 'No' ? 'on' : ''}" id="plAct" data-act="sw"></button></div></div>` : ''}
     <div class="acts">${nuevo ? '' : '<button class="btn danger" data-act="delPlan">Eliminar</button>'}<button class="btn" data-act="submit">Guardar</button></div>`,
     async () => { const a = $('#plAct');
       const d = { id: p.id, tipo: p.tipo, nombre: val('plNom'), notas: val('plNotas'), activo: a ? a.classList.contains('on') : true };
-      if (T) Object.assign(d, { concepto: val('plCon'), diaCorte: val('plCorte'), diaPago: val('plPago'), limite: val('plLim') });
+      if (T) Object.assign(d, { concepto: p.concepto || '', diaCorte: val('plCorte'), diaPago: val('plPago'), limite: val('plLim') });
       else if (M) { const prim = $('#plPrim'); Object.assign(d, { modo: 'tarjeta', tarjetaId: val('plTj'), concepto: p.concepto || '', fechaCompra: val('plFecha'), total: val('plTot'), pagos: val('plPagos'), pagosHechos: val('plHechos'), primerPago: prim && !prim.classList.contains('hidden') ? prim.value : '', limpiar: !!($('#plLimpiar') && $('#plLimpiar').checked) }); }
       else Object.assign(d, { modo: 'directo', concepto: val('plCon'), total: val('plTot'), pagos: val('plPagos'), mensualidad: val('plMen'), diaPago: val('plPago'), inicio: val('plIni'), previo: val('plPrev') });
       if (await call('guardarPlan', d)) { closeSheet(); UI.planModo = null; toast(nuevo ? 'Guardado' : 'Actualizado'); } });
@@ -1472,12 +1508,13 @@ function sheetMarca(mes, origen){
 }
 function desgloseTarjetaHTML(m){
   const t = tarjetaDeConcepto(m.concepto); if (!t) return '';
-  const l = msiDelMes(t, m.mes); if (!l.length) return `<div class="f"><label>Compras a meses en este pago</label><div class="abonos"><div class="abr mut"><span>Ninguna en ${etq(m.mes)}</span></div></div></div>`;
-  const tot = sum(l, x => x.i.men);
-  return `<div class="f"><label>Compras a meses en este pago · ${l.length}</label><div class="abonos">
-    ${l.map(x => `<div class="abr"><span>${esc(x.p.nombre)} <span class="mut">· ${x.c.k + 1}/${x.i.n}</span></span><b class="num">${fmt(x.i.men, true)}</b><span></span></div>`).join('')}
-    <div class="abr" style="background:var(--soft)"><span><b>Total a meses</b>${m.monto !== '' ? ` <span class="mut">· otros cargos ${fmt(n(m.monto) - tot, true)}</span>` : ''}</span><b class="num">${fmt(tot, true)}</b><span></span></div>
-  </div>${m.monto === '' && editable(m.mes) ? `<div class="hint"><button data-act="usarMsi" data-v="${Math.round(tot * 100) / 100}">Usar ${fmt(tot, true)} como monto</button><span>(agrega tus otros cargos si los hay)</span></div>` : ''}</div>`;
+  const l = msiDelMes(t, m.mes); if (!l.length) return `<div class="f"><label>Compras en este pago</label><div class="abonos"><div class="abr mut"><span>Ninguna capturada en ${etq(m.mes)}</span></div></div></div>`;
+  const tot = sum(l, x => x.i.men), ap = aplicado(m), extra = n(m.monto) - tot, demas = ap - Math.max(tot, n(m.monto));
+  return `<div class="f"><label>Compras en este pago · ${l.length}</label><div class="abonos">
+    ${l.map(x => `<div class="abr"><span>${esc(x.p.nombre)} <span class="mut">· ${x.i.n === 1 ? 'una exhibición' : (x.c.k + 1) + '/' + x.i.n}</span></span><b class="num">${fmt(x.i.men, true)}</b><span></span></div>`).join('')}
+    <div class="abr" style="background:var(--soft)"><span><b>Suma de compras</b>${m.monto !== '' && Math.abs(extra) >= 0.01 ? ` <span class="mut">· otros cargos ${fmt(extra, true)}</span>` : ''}</span><b class="num">${fmt(tot, true)}</b><span></span></div>
+    ${demas >= 0.01 ? `<div class="abr"><span>Pagado de más <span class="mut">· atrasados o compras sin capturar</span></span><b class="num">${fmt(demas, true)}</b><span></span></div>` : ''}
+  </div>${m.origen === 'tarjeta' ? '<div class="hint"><span>El monto se calcula solo con las compras de Planes. Si lo cambias a mano, deja de actualizarse.</span></div>' : ''}${m.monto === '' && editable(m.mes) ? `<div class="hint"><button data-act="usarMsi" data-v="${Math.round(tot * 100) / 100}">Usar ${fmt(tot, true)} como monto</button><span>(agrega tus otros cargos si los hay)</span></div>` : ''}</div>`;
 }
 Object.assign(ACT, {
   nuevoPlan: d => { UI.planModo = null; sheetPlan(null, d.t); },
