@@ -1,4 +1,4 @@
-<!-- Gastos Juances v2.1.3 -->
+<!-- Gastos Juances v2.2.0 -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -331,6 +331,17 @@ a.btn{text-decoration:none}
 .bbar{height:4px;border-radius:4px;background:var(--line);overflow:hidden;margin-top:14px}
 .bbar span{display:block;height:100%;width:0;background:var(--accent);border-radius:4px}
 .busy.ok .bbar span{background:var(--pos)}
+.sol{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid color-mix(in srgb,var(--accent) 40%,var(--line));border-radius:12px;padding:10px 12px;margin-top:8px}
+.sol .av{width:36px;height:36px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:700;flex:none}
+.cntp{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--accent);color:#fff;font-size:10.5px;font-weight:700}
+.pendic{width:38px;height:38px;border-radius:10px;background:var(--soft);display:grid;place-items:center;font-size:20px;flex:none}
+.updm{position:fixed;inset:0;z-index:95;display:grid;place-items:center;padding:20px;background:rgba(10,11,14,.55);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .2s}
+.updm.on{opacity:1;pointer-events:auto}
+.ucard{background:var(--card);border-radius:18px;padding:26px 22px 18px;width:min(360px,100%);text-align:center;border-top:4px solid var(--accent);box-shadow:0 20px 60px rgba(0,0,0,.3);transform:translateY(10px);transition:transform .2s}
+.updm.on .ucard{transform:none}
+.ucard h2{font-family:var(--serif);font-weight:600;font-size:21px;margin:12px 0 4px}
+.ucard .mut{font-size:13px;margin:0}
+.ulogo{width:64px;height:64px;margin:0 auto;border-radius:16px;background:center/cover no-repeat}
 </style>
 </head>
 <body>
@@ -338,6 +349,14 @@ a.btn{text-decoration:none}
 <div class="ov" id="ov" data-act="closeSheet"></div>
 <div class="sheet" id="sheet"></div>
 <div class="toast" id="toast"></div>
+<div class="updm" id="updModal" role="dialog" aria-modal="true"><div class="ucard">
+  <div class="ulogo"></div>
+  <h2>Nueva versión disponible</h2>
+  <p class="mut" id="updVer"></p>
+  <p style="font-size:13.5px;margin:10px 0 0">Actualiza para tener las últimas mejoras y correcciones. Toma unos segundos y <b>tus datos no se pierden</b>.</p>
+  <button class="btn block" id="updGo" data-act="updGo" style="margin-top:16px">Actualizar ahora</button>
+  <button class="link" data-act="updLater" style="margin-top:10px;color:var(--muted);font-size:13px">Más tarde</button>
+</div></div>
 <div class="busy" id="busy" aria-live="polite"><div class="bcard">
   <div class="bmark"><svg class="bring" viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" fill="none" stroke="var(--line)" stroke-width="4"/><circle class="arc" cx="32" cy="32" r="28" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" stroke-dasharray="60 200"/></svg>
     <div class="blogo"></div>
@@ -388,9 +407,10 @@ const fechaHora = iso => iso ? new Date(iso).toLocaleString('es-MX', {day:'numer
 const hora = iso => new Date(iso).toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit'});
 
 /* ================== Versión ================== */
-const APP_VERSION = '2.1.3';
-const APP_FECHA = '16 nov 2026';
+const APP_VERSION = '2.2.0';
+const APP_FECHA = '17 nov 2026';
 const CHANGELOG = [
+  { v: '2.2.0', f: '17 nov 2026', c: ['Registro con aprobación: quien entra con su Gmail queda como Usuario pendiente y el administrador recibe un push y un correo para aprobar o rechazar', 'Avisos push por partida: 3, 2 y 1 días antes, el día del vencimiento y cada día de atraso con su contador', 'Correo de resumen diario siempre (con o sin pagos pendientes) con el estado del mes', 'Los avisos se revisan cada hora y se envían una vez al día: si una hora falla, la siguiente lo recupera; el activador se repara solo', 'Ventana emergente de nueva versión con botón Actualizar ahora', 'Administración → Sistema: estado de los avisos y botón «Enviar ahora»'] },
   { v: '2.1.3', f: '16 nov 2026', c: ['Indicador de progreso al guardar: tarjeta con anillo, barra de avance y lo que se está haciendo; termina con «Guardado» en verde o el aviso de error', 'Si Google tarda más de 6 segundos, el indicador muestra cuánto lleva esperando'] },
   { v: '2.1.2', f: '15 nov 2026', c: ['El correo diario ya no depende de la notificación push: si una falla, la otra sale igual', 'Mensajes claros cuando falta habilitar una API de Google (Drive o Firebase Cloud Messaging)', 'Nuevo menú en la hoja: «Diagnosticar y enviar alertas ahora», que muestra el resultado de cada canal'] },
   { v: '2.1.1', f: '14 nov 2026', c: ['«Por categoría» rediseñado: cada categoría agrupa sus registros del mes (se abre y cierra con un toque), con total, pagado, saldo y barra de presupuesto', 'Vista por categoría también para ingresos', 'Si una sección falla, se muestra el detalle del error en lugar de quedar en blanco'] },
@@ -487,7 +507,8 @@ function porAtender(){
   return out.sort((a, b) => a.dias - b.dias);
 }
 function grupoAlerta(d){ return d < 0 ? 'Vencidos' : d === 0 ? 'Vence hoy' : d <= 3 ? 'En 3 días' : 'Esta semana'; }
-function nAlertas(){ const act = mesDefault(); return porAtender().filter(x => x.dias <= 3).length + cortesProximos().length + (act ? excedidos(act).length : 0); }
+function nPendientes(){ return S && S.admin ? S.admin.usuarios.filter(u => u.activo === 'Pendiente').length : 0; }
+function nAlertas(){ const act = mesDefault(); return nPendientes() + porAtender().filter(x => x.dias <= 3).length + cortesProximos().length + (act ? excedidos(act).length : 0); }
 function badge(){ try { const k = porAtender().filter(x => x.dias <= 0).length; if (navigator.setAppBadge) { k ? navigator.setAppBadge(k) : navigator.clearAppBadge(); } } catch(e) {} }
 
 function semMes(c){ const u = n(S.config.umbralJusto) || 1000;
@@ -512,7 +533,7 @@ function shell(){
     <button class="iconbtn bell" data-act="alertas" aria-label="Alertas" id="btnBell">${IC.bell}<span class="cnt hidden" id="bellCnt"></span></button>
     <button class="iconbtn" data-act="refresh" aria-label="Actualizar">${IC.sync}</button></header>
   ${window.MODO === 'demo' ? '<div class="demo">Vista previa con tus datos del Excel · los cambios no se guardan</div>' : ''}
-  <div class="upd hidden" id="upd"><span>Hay una nueva versión de Gastos Juances.</span><button class="btn sm" data-act="actualizarApp">Actualizar</button></div>
+  
   <main id="view"></main>
   <button class="fab hidden" id="fab" data-act="fab" aria-label="Agregar">${IC.plus}</button>
   <nav class="tabbar">
@@ -522,7 +543,7 @@ function shell(){
     <button data-act="go" data-v="planes">${IC.card}Planes</button>
     <button data-act="go" data-v="ajustes">${IC.gear}Ajustes</button>
   </nav>`;
-  if (swEspera) $('#upd').classList.remove('hidden');
+
 }
 function renderSync(){
   const el = $('#sync'); if (!el) return;
@@ -793,12 +814,14 @@ function vAdmin(){
   const A = S.admin, I = A.integraciones;
   const tab = UI.adminTab;
   let body = '';
+  const pend = A.usuarios.filter(u => u.activo === 'Pendiente');
   if (tab === 'usuarios') body = `
-    <div class="rows" style="margin-top:10px">${A.usuarios.map(u => `<button class="row" data-act="editUsr" data-e="${esc(u.email)}" style="grid-template-columns:1fr auto;grid-template-areas:'con st' 'meta st'">
+    ${pend.length ? `<div class="subh2" style="margin-top:12px;color:var(--accent)">Solicitudes por aprobar · ${pend.length}</div>${pend.map(solicitudHTML).join('')}` : ''}
+    <div class="rows" style="margin-top:10px">${A.usuarios.filter(u => u.activo !== 'Pendiente').map(u => `<button class="row" data-act="editUsr" data-e="${esc(u.email)}" style="grid-template-columns:1fr auto;grid-template-areas:'con st' 'meta st'">
       <span class="con">${esc(u.nombre || u.email)}</span><span class="meta" style="display:block">${esc(u.email)} · ${u.ultimoAcceso ? 'último acceso ' + hace(u.ultimoAcceso) : 'sin acceso aún'}</span>
       <span class="st" style="display:block"><span class="pill ${u.activo === 'No' ? 'c-gray' : u.rol === 'Administrador' ? 'c-bad' : 'c-ok'}">${u.activo === 'No' ? 'Inactivo' : u.rol}</span></span></button>`).join('')}</div>
     <button class="btn block" style="margin-top:10px" data-act="nuevoUsr">Dar de alta usuario</button>
-    <p class="mut" style="font-size:12px;margin:8px 2px 0">El usuario entra en ${esc(S.global.appUrl || 'la app')} con «Iniciar sesión con Google» usando ese Gmail. Empieza en blanco; tú no ves sus datos en la app.</p>`;
+    <p class="mut" style="font-size:12px;margin:8px 2px 0">Cualquier persona puede pedir acceso entrando a ${esc(S.global.appUrl || 'la app')} con «Iniciar sesión con Google»: queda como Usuario pendiente y te llega un aviso para aprobarla. También puedes darla de alta tú directamente. Cada usuario empieza en blanco; tú no ves sus datos en la app.</p>`;
   else if (tab === 'integraciones') body = `<div class="card" style="margin-top:10px">
     <div class="f" style="margin-top:0"><label>ID de cliente de Google (inicio de sesión)</label><input id="gCid" value="${esc(I.googleClientId)}" placeholder="xxxx.apps.googleusercontent.com" autocomplete="off"></div>
     <div class="f"><label>URL de la app</label><input id="gApp" value="${esc(I.appUrl)}"></div>
@@ -809,14 +832,18 @@ function vAdmin(){
     <div class="f"><label>App ID</label><input id="fApp" value="${esc(I.firebaseAppId)}" autocomplete="off"></div>
     <div class="f"><label>Clave VAPID (certificado push web)</label><input id="fVap" value="${esc(I.firebaseVapidKey)}" autocomplete="off"></div>
     <button class="btn dark block" style="margin-top:12px" data-act="saveGlobal">Guardar integraciones</button></div>`;
-  else if (tab === 'respaldos') { const rp = A.respaldo || {}; body = `<div class="card" style="margin-top:10px;font-size:13px">
+  else if (tab === 'respaldos') { const rp = A.respaldo || {}, av = A.avisos || {}; body = `<div class="card" style="margin-top:10px;font-size:13px">
+    <b style="font-family:var(--serif);font-size:16px">Avisos diarios</b><p class="mut" style="margin:4px 0 10px">Push por cada partida (3, 2 y 1 días antes, el día y cada día de atraso) y correo de resumen diario, a partir de las ${esc(av.hora || 8)}:00 h.</p>
+    <div class="toggle"><div><b>${av.programado ? '<span class="pos">Programado</span>' : '<span class="neg">No programado</span>'}</b><br><span class="mut">Último envío: ${av.ultima ? fechaHora(av.ultima) + ' · ' + hace(av.ultima) : 'aún no'}</span></div><button class="btn sm dark" data-act="avisosAhora">Enviar ahora</button></div>
+    <div id="avisosRes"></div></div>
+  <div class="card" style="margin-top:10px;font-size:13px">
     <b style="font-family:var(--serif);font-size:16px">Respaldo automático</b><p class="mut" style="margin:4px 0 10px">Cada domingo a las 3:00 se guarda una copia completa de la hoja en tu Drive (carpeta <b>Gastos Juances / Respaldos</b>). Se conservan las últimas 8.</p>
     <div class="toggle"><div><b>Último respaldo</b><br><span class="mut">${rp.ultimo ? fechaHora(rp.ultimo) + ' · ' + hace(rp.ultimo) : 'Aún no hay respaldos'}${rp.archivos ? ' · ' + rp.archivos + (rp.archivos === '1' ? ' copia guardada' : ' copias guardadas') : ''}</span></div><button class="btn sm dark" data-act="respaldar">Respaldar ahora</button></div>
     ${rp.carpeta ? `<p style="margin:10px 0 0"><a href="${esc(rp.carpeta)}" target="_blank" rel="noopener" style="color:var(--accent);font-weight:600">Abrir carpeta de respaldos en Drive →</a></p>` : ''}</div>`; }
   else body = `<div class="card" style="margin-top:10px">${A.accesos.map(l => `<div class="log"><div class="li ${/INTENTO/.test(l.accion) ? 'a' : ''}"></div><div class="lt"><b>${esc(l.usuario)}</b><div>${esc(l.accion.toLowerCase())} · ${esc(l.detalle)}</div><div>${fechaHora(l.fecha)}</div></div></div>`).join('') || '<div class="empty">Sin accesos registrados.</div>'}
     ${A.notificaciones.length ? `<div class="subh2" style="margin-top:14px">Notificaciones enviadas</div>${A.notificaciones.slice(0, 15).map(x => `<div class="log"><div class="li ${x.estado === 'error' ? 'a' : ''}"></div><div class="lt"><b>${esc(x.usuario)} · ${esc(x.canal)}</b><div>${esc(x.titulo)} · ${esc(x.estado)}</div><div>${fechaHora(x.fecha)}</div></div></div>`).join('')}` : ''}</div>`;
   return `<div class="sec">Administración</div>
-  <div class="seg"><button class="${tab === 'usuarios' ? 'on' : ''}" data-act="adminTab" data-t="usuarios">Usuarios <span class="num" style="color:var(--faint)">${A.usuarios.length}</span></button><button class="${tab === 'accesos' ? 'on' : ''}" data-act="adminTab" data-t="accesos">Accesos</button><button class="${tab === 'integraciones' ? 'on' : ''}" data-act="adminTab" data-t="integraciones">Integraciones</button><button class="${tab === 'respaldos' ? 'on' : ''}" data-act="adminTab" data-t="respaldos">Respaldos</button></div>
+  <div class="seg"><button class="${tab === 'usuarios' ? 'on' : ''}" data-act="adminTab" data-t="usuarios">Usuarios ${pend.length ? `<span class="cntp">${pend.length}</span>` : `<span class="num" style="color:var(--faint)">${A.usuarios.length}</span>`}</button><button class="${tab === 'accesos' ? 'on' : ''}" data-act="adminTab" data-t="accesos">Accesos</button><button class="${tab === 'integraciones' ? 'on' : ''}" data-act="adminTab" data-t="integraciones">Integraciones</button><button class="${tab === 'respaldos' ? 'on' : ''}" data-act="adminTab" data-t="respaldos">Sistema</button></div>
   ${body}`;
 }
 
@@ -887,6 +914,7 @@ function reabrirMovSheet(id){ const m = S.movimientos.find(x => x.id === id); if
 function sheetAlertas(){
   const l = porAtender();
   openSheet(`<h2>Alertas de pagos</h2><p class="lead">Vencidos, que vencen hoy y en los próximos 7 días · aviso diario a las ${S.global.horaAlerta || 8}:00 h</p>
+    ${nPendientes() ? `<div class="subh2" style="margin-top:4px;color:var(--accent)">Solicitudes de acceso · ${nPendientes()}</div>${S.admin.usuarios.filter(u => u.activo === 'Pendiente').map(solicitudHTML).join('')}` : ''}
     ${cortesProximos().length ? `<div class="notice"><span style="flex:1"><b>Fecha de corte:</b> ${cortesProximos().map(x => esc(x.p.nombre) + (x.dias === 0 ? ' hoy' : ' mañana')).join(' · ')}</span></div>` : ''}
     ${mesDefault() && excedidos(mesDefault()).length ? `<div class="notice over"><span style="flex:1"><b>Sobre presupuesto (${etq(mesDefault())}):</b> ${excedidos(mesDefault()).map(x => esc(x.k) + ' ' + Math.round(x.pct * 100) + '%').join(' · ')}</span></div>` : ''}
     ${proximosHTML(0)}
@@ -1049,7 +1077,8 @@ async function call(fn, ...args){
   catch(e) { busyOff(false); toast(e.message, true); if (e.offline) { UI.online = false; renderSync(); } return false; }
   finally { UI.busy = false; if (b) { b.disabled = false; b.textContent = b.dataset.t; } }
 }
-function setState(r){ S = r; UI.online = true; UI.sync = new Date().toISOString(); if (window.MODO !== 'demo') LS.set('gj_cache', r); render(); }
+function irAprobar(){ if (!S || !S.admin) return; UI.view = 'ajustes'; UI.adminTab = 'usuarios'; render(); setTimeout(() => { const el = document.querySelector('.sol') || document.querySelector('[data-t="usuarios"]'); if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' }); }, 150); }
+function setState(r){ if (r && r.global && r.global.apiVersion && window.MODO !== 'demo' && cmpVer(r.global.apiVersion, APP_VERSION) > 0) setTimeout(() => ventanaActualizar('servidor'), 400); S = r; UI.online = true; UI.sync = new Date().toISOString(); if (window.MODO !== 'demo') LS.set('gj_cache', r); render(); }
 
 const ACT = {
   go: d => { UI.view = d.v; render(); scrollTo(0, 0); },
@@ -1110,7 +1139,7 @@ Object.assign(ACT, {
   nuevoUsr: () => sheetUsuario(null),
   editUsr: d => sheetUsuario(S.admin.usuarios.find(u => u.email === d.e)),
   saveGlobal: async () => { if (await call('guardarGlobal', { googleClientId: val('gCid'), appUrl: val('gApp'), horaAlerta: val('gHora'), firebaseProjectId: val('fPid'), firebaseSenderId: val('fSid'), firebaseApiKey: val('fKey'), firebaseAppId: val('fApp'), firebaseVapidKey: val('fVap') })) toast('Integraciones guardadas'); },
-  actualizarApp: () => { if (swEspera) { swEspera.postMessage('skip'); } else location.reload(); }
+  actualizarApp: () => aplicarActualizacion()
 });
 
 /* ================== v2.1 · Presupuestos ================== */
@@ -1280,6 +1309,54 @@ Object.assign(ACT, {
   respaldar: async () => { toast('Creando respaldo…'); if (await call('respaldarAhora')) toast('Respaldo creado en tu Drive'); }
 });
 
+/* ================== v2.2 · Solicitudes, ventana de actualización ================== */
+function solicitudHTML(u){
+  return `<div class="sol"><div class="av">${esc((u.nombre || u.email).charAt(0).toUpperCase())}</div>
+    <div style="flex:1;min-width:0"><b>${esc(u.nombre || 'Sin nombre')}</b><div class="mut" style="font-size:12px;overflow:hidden;text-overflow:ellipsis">${esc(u.email)} · ${u.alta ? hace(u.alta) : ''}</div></div>
+    <button class="btn sm ghost" data-act="resolver" data-e="${esc(u.email)}" data-v="0">Rechazar</button><button class="btn sm" data-act="resolver" data-e="${esc(u.email)}" data-v="1">Aprobar</button></div>`;
+}
+function cmpVer(a, b){ const x = String(a).split('.').map(Number), y = String(b).split('.').map(Number); for (let i = 0; i < 3; i++) { if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) - (y[i] || 0); } return 0; }
+let updMostrado = false;
+async function ventanaActualizar(motivo){
+  const ul = document.querySelector('.ulogo'); if (ul && !ul.style.backgroundImage) ul.style.backgroundImage = 'url("data:image/svg+xml;utf8,' + encodeURIComponent(LOGO.replace('class="logo"', 'xmlns="http://www.w3.org/2000/svg"')) + '")';
+  if (updMostrado || sessionStorage.getItem('gj_updLater')) return;
+  updMostrado = true;
+  let nueva = '';
+  try { const t = await (await fetch('sw.js?v=' + Date.now(), { cache: 'no-store' })).text(); const m = t.match(/v(\d+\.\d+\.\d+)/); if (m) nueva = m[1]; } catch(e) {}
+  if (motivo === 'servidor' && S && S.global && S.global.apiVersion && (!nueva || cmpVer(nueva, S.global.apiVersion) < 0)) nueva = nueva || S.global.apiVersion;
+  if (nueva && cmpVer(nueva, APP_VERSION) <= 0 && motivo !== 'sw') { updMostrado = false; return; }
+  const d = $('#updModal'); if (!d) return;
+  $('#updVer').innerHTML = `Tienes <b>v${APP_VERSION}</b>${nueva ? ` · disponible <b class="neg">v${nueva}</b>` : ''}`;
+  d.classList.add('on');
+}
+async function aplicarActualizacion(){
+  const b = $('#updGo'); if (b) { b.disabled = true; b.textContent = 'Actualizando…'; }
+  try {
+    if (swEspera) { swEspera.postMessage('skip'); setTimeout(() => location.reload(), 2500); return; }
+    if ('serviceWorker' in navigator) { const reg = await navigator.serviceWorker.getRegistration(); if (reg) { await reg.update(); if (reg.waiting) { reg.waiting.postMessage('skip'); setTimeout(() => location.reload(), 2500); return; } } }
+    if (window.caches) { const ks = await caches.keys(); await Promise.all(ks.map(k => caches.delete(k))); }
+  } catch(e) {}
+  location.reload();
+}
+function pantallaPendiente(msg){
+  S = null;
+  $('#app').innerHTML = `<div class="setup">${LOGO.replace('class="logo"', 'class="logo-big"')}
+    <h1>Solicitud enviada</h1>
+    <div class="card" style="text-align:left;margin-top:14px;font-size:14px"><div style="display:flex;gap:12px;align-items:flex-start"><div class="pendic">⏳</div><div>${esc(msg)}</div></div></div>
+    <p class="mut" style="font-size:12.5px;margin-top:14px">Cuando recibas el correo de aprobación, vuelve a abrir la app e inicia sesión con la misma cuenta de Google.</p>
+    <button class="btn block" style="margin-top:10px" data-act="reintentarLogin">Ya me aprobaron · Entrar</button></div>`;
+}
+Object.assign(ACT, {
+  resolver: async (d, el) => { const ap = d.v === '1'; if (!ap && !seguro(el, '¿Rechazar?')) return;
+    if (await call('resolverSolicitud', d.e, ap)) { toast(ap ? 'Aprobado: le avisamos por correo' : 'Solicitud rechazada'); if ($('#sheet').classList.contains('on')) sheetAlertas(); } },
+  avisosAhora: async () => { try { const r = await conProgreso('enviarAvisosAhora', () => rpc('enviarAvisosAhora'), 'Avisos enviados');
+      const box = $('#avisosRes'); if (box) box.innerHTML = '<div class="abonos" style="margin-top:10px">' + r.map(x => `<div class="abr" style="grid-template-columns:1fr"><span><b>${esc(x.email)}</b><br><span class="mut" style="font-size:12px">${x.error ? 'Error: ' + esc(x.error) : x.alertas + ' avisos · push: ' + esc(x.push) + ' · correo: ' + esc(x.correo)}</span></span></div>`).join('') + '</div>'; const html = box ? box.innerHTML : ''; await cargar(); const b2 = $('#avisosRes'); if (b2) b2.innerHTML = html; }
+    catch(e) { toast(e.message, true); } },
+  reintentarLogin: () => pantallaLogin(),
+  updLater: () => { sessionStorage.setItem('gj_updLater', '1'); $('#updModal').classList.remove('on'); },
+  updGo: () => aplicarActualizacion()
+});
+
 /* ================== Sincronización en tiempo real ================== */
 async function cargar(manual){
   UI.syncing = true; renderSync();
@@ -1312,7 +1389,7 @@ async function pantallaLogin(error){
       <input id="pcode" inputmode="numeric" maxlength="7" placeholder="000 000" autocomplete="one-time-code">
       <button class="btn block dark" data-act="vincularCodigo" style="margin-top:8px">Vincular este dispositivo</button>
       <p class="mut" style="font-size:12px">Genéralo en otro dispositivo donde ya iniciaste sesión: Ajustes → Vincular otro dispositivo.</p></details>
-    <p class="mut" style="font-size:12px;margin-top:22px">Solo entran cuentas dadas de alta por el administrador.</p>
+    <p class="mut" style="font-size:12px;margin-top:22px">¿Primera vez? Inicia sesión con Google para solicitar acceso; el administrador recibirá tu solicitud.</p>
     ${installCard(false)}</div>`;
   if (window.MODO === 'demo') return;
   try {
@@ -1328,19 +1405,21 @@ async function pantallaLogin(error){
 }
 async function entrarCon(fn, valor){
   try { const r = await conProgreso(fn, () => rpc(fn, valor, dispositivo()), 'Bienvenido'); LS.set('gj_sesion', r.sesion); shell(); setState(r.estado); toast('Bienvenido' + (r.estado.yo.nombre ? ', ' + r.estado.yo.nombre.split(' ')[0] : '')); refrescarPush(); }
-  catch(e) { pantallaLogin(e.message); }
+  catch(e) { if (/^PENDIENTE:/.test(e.message)) pantallaPendiente(e.message.replace(/^PENDIENTE:\s*/, '')); else pantallaLogin(e.message); }
 }
 ACT.vincularCodigo = () => { const c = val('pcode').replace(/\D/g, ''); if (c.length !== 6) return toast('Escribe los 6 dígitos', true); entrarCon('vincular', c); };
 
 /* ================== Actualizaciones de la app (service worker) ================== */
 function vigilarSW(reg){
-  const avisar = w => { swEspera = w; const u = $('#upd'); if (u) u.classList.remove('hidden'); };
+  const avisar = w => { swEspera = w; ventanaActualizar('sw'); };
   if (reg.waiting && navigator.serviceWorker.controller) avisar(reg.waiting);
   reg.addEventListener('updatefound', () => { const w = reg.installing; if (!w) return;
     w.addEventListener('statechange', () => { if (w.state === 'installed' && navigator.serviceWorker.controller) avisar(w); }); });
   let recargado = false;
   navigator.serviceWorker.addEventListener('controllerchange', () => { if (!recargado) { recargado = true; location.reload(); } });
-  setInterval(() => reg.update().catch(() => {}), 30 * 60000);
+  setInterval(() => reg.update().catch(() => {}), 15 * 60000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) reg.update().catch(() => {}); });
+  navigator.serviceWorker.addEventListener('message', e => { if (e.data && e.data.ir === 'aprobar') irAprobar(); });
 }
 
 /* ================== Arranque ================== */
@@ -1351,7 +1430,8 @@ function vigilarSW(reg){
   if (h) { LS.set('gj_sesion', h[1]); history.replaceState(null, '', location.pathname); }
   if (!sesion()) return pantallaLogin();
   const cache = LS.get('gj_cache'); shell(); if (cache && cache.yo) { S = cache; UI.sync = null; render(); }
-  cargar().then(refrescarPush);
+  const irA = /#aprobar/.test(location.hash); if (irA) history.replaceState(null, '', location.pathname);
+  cargar().then(() => { refrescarPush(); if (irA) irAprobar(); });
 })();
 </script>
 </body>
