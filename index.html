@@ -1,4 +1,4 @@
-<!-- Gastos Juances v2.2.0 -->
+<!-- Gastos Juances v2.3.0 -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -342,6 +342,14 @@ a.btn{text-decoration:none}
 .ucard h2{font-family:var(--serif);font-weight:600;font-size:21px;margin:12px 0 4px}
 .ucard .mut{font-size:13px;margin:0}
 .ulogo{width:64px;height:64px;margin:0 auto;border-radius:16px;background:center/cover no-repeat}
+.cal{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:6px}
+.mcell{border:1px solid var(--line);border-radius:9px;padding:6px 4px;display:flex;flex-direction:column;align-items:center;gap:1px;background:var(--card)}
+.mcell b{font-size:13px}.mcell span{font-size:11px;color:var(--muted)}.mcell i{font-style:normal;font-size:10px;font-weight:700}
+.mcell.pagado{border-color:color-mix(in srgb,var(--pos) 45%,var(--line));background:color-mix(in srgb,var(--pos) 8%,var(--card))}.mcell.pagado i{color:var(--pos)}
+.mcell.atrasado{border-color:var(--accent)}.mcell.atrasado i{color:var(--accent)}
+.mcell.actual{border-color:var(--warn)}.mcell.actual i{color:var(--warn)}
+.mcell.futuro i{color:var(--faint)}
+.mcell:disabled{opacity:.85}
 </style>
 </head>
 <body>
@@ -407,9 +415,10 @@ const fechaHora = iso => iso ? new Date(iso).toLocaleString('es-MX', {day:'numer
 const hora = iso => new Date(iso).toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit'});
 
 /* ================== Versión ================== */
-const APP_VERSION = '2.2.0';
+const APP_VERSION = '2.3.0';
 const APP_FECHA = '17 nov 2026';
 const CHANGELOG = [
+  { v: '2.3.0', f: '17 nov 2026', c: ['Compras a meses dentro de la tarjeta: ya no se capturan en Mes; van como desglose dentro del pago de la tarjeta (sin doble conteo)', 'Fecha de compra: el primer pago se calcula con el día de corte y el día límite de la tarjeta (ej. compra el 18 nov con corte 14 → se paga en enero)', 'Avance automático: cada mensualidad cuenta como pagada cuando la tarjeta de ese mes queda Pagada; también se puede marcar a mano', 'Pagos ya hechos como número de mensualidades, con sugerencia según la fecha', 'Planes ordenado por tarjeta (con total a meses del mes y deuda restante) o por concepto con buscador', 'Comprobante (ticket o voucher) en cada compra a meses o apartado', 'Conversión: al pasar una compra existente a «dentro de la tarjeta» se quitan sus partidas de los meses abiertos'] },
   { v: '2.2.0', f: '17 nov 2026', c: ['Registro con aprobación: quien entra con su Gmail queda como Usuario pendiente y el administrador recibe un push y un correo para aprobar o rechazar', 'Avisos push por partida: 3, 2 y 1 días antes, el día del vencimiento y cada día de atraso con su contador', 'Correo de resumen diario siempre (con o sin pagos pendientes) con el estado del mes', 'Los avisos se revisan cada hora y se envían una vez al día: si una hora falla, la siguiente lo recupera; el activador se repara solo', 'Ventana emergente de nueva versión con botón Actualizar ahora', 'Administración → Sistema: estado de los avisos y botón «Enviar ahora»'] },
   { v: '2.1.3', f: '16 nov 2026', c: ['Indicador de progreso al guardar: tarjeta con anillo, barra de avance y lo que se está haciendo; termina con «Guardado» en verde o el aviso de error', 'Si Google tarda más de 6 segundos, el indicador muestra cuánto lleva esperando'] },
   { v: '2.1.2', f: '15 nov 2026', c: ['El correo diario ya no depende de la notificación push: si una falla, la otra sale igual', 'Mensajes claros cuando falta habilitar una API de Google (Drive o Firebase Cloud Messaging)', 'Nuevo menú en la hoja: «Diagnosticar y enviar alertas ahora», que muestra el resultado de cada canal'] },
@@ -688,7 +697,7 @@ function vMes(){
 }
 function itemHTML(m){
   const s = semaforo(m), ap = aplicado(m), sd = saldo(m), sinM = m.monto === '';
-  const meta = [m.categoria, n(m.dia) ? 'día ' + n(m.dia) : '', sinM && m.mesAnterior !== '' ? 'ant. ' + fmt(m.mesAnterior) : '', !sinM && sd !== 0 && s.k !== 'ok' ? 'saldo ' + fmt(sd) : '', m.notas ? '✎' : '', comprobantesDe(m.id).length ? '📎' + comprobantesDe(m.id).length : ''].filter(Boolean).join(' · ');
+  const meta = [m.categoria, n(m.dia) ? 'día ' + n(m.dia) : '', sinM && m.mesAnterior !== '' ? 'ant. ' + fmt(m.mesAnterior) : '', !sinM && sd !== 0 && s.k !== 'ok' ? 'saldo ' + fmt(sd) : '', m.notas ? '✎' : '', comprobantesDe(m.id).length ? '📎' + comprobantesDe(m.id).length : '', (() => { const t = tarjetaDeConcepto(m.concepto); if (!t) return ''; const l = msiDelMes(t, m.mes); return l.length ? 'incluye ' + l.length + ' a meses ' + fmt(sum(l, x => x.i.men)) : ''; })()].filter(Boolean).join(' · ');
   return `<button class="row" data-act="editMov" data-id="${m.id}">
     <span class="con">${esc(m.concepto)}${m.origen === 'transferido' ? '<span class="tag">Transf.</span>' : ''}</span>
     <span class="meta">${esc(meta)}</span>
@@ -895,6 +904,7 @@ function sheetMov(m, tipoNuevo){
           <input id="aNota" class="abnota" placeholder="Nota (opcional): transferencia, efectivo, tarjeta…">
           ${m.monto !== '' && sd > 0 ? `<div class="hint"><button data-act="liquidarMov">${L.liq} (${fmt(sd, true)})</button></div>` : ''}` : ''}
       </div></div>` : ''}
+    ${!nuevo ? desgloseTarjetaHTML(m) : ''}
     ${!nuevo ? comprobantesHTML(m, ed) : ''}
     <div class="f"><label>Estatus</label><div class="seg" id="mSt">${sts.map(s => `<button data-act="st" data-s="${s}" class="${m.estatus === s ? 'on' : ''}" ${dis}>${s}</button>`).join('')}</div></div>
     <div class="f"><label>Notas</label><textarea id="mNotas" rows="2" ${dis}>${esc(m.notas)}</textarea></div>
@@ -1183,65 +1193,16 @@ function planInfo(p){
   const termina = p.inicio && n(p.pagos) ? sumarMes(p.inicio, n(p.pagos) - 1) : '';
   return { pagado, total, restante, pct: total ? Math.min(1, pagado / total) : 0, hechos, termina, liquidado: total && restante <= 0.009 };
 }
-function vPlanes(){
-  const tj = (S.planes || []).filter(p => p.tipo === 'Tarjeta'), ap = (S.planes || []).filter(p => p.tipo === 'Apartado');
-  const fd = f => f ? f.toLocaleDateString('es-MX', {day:'numeric', month:'short'}) : '—';
-  return `
-  <p style="font-size:12.5px;color:var(--muted);margin:2px 2px 0">Cada tarjeta o apartado crea un concepto recurrente que aparece solo en cada mes nuevo, con su día de pago (y su mensualidad, en apartados).</p>
-  <div class="sec">Tarjetas de crédito · ${tj.length} <button class="link" data-act="nuevoPlan" data-t="Tarjeta">Agregar →</button></div>
-  ${tj.length ? `<div class="rows">${tj.map(p => { const i = planInfo(p), mv = i.mv, sd = mv && mv.monto !== '' ? saldo(mv) : null;
-    return `<button class="row plan" data-act="editPlan" data-id="${p.id}">
-      <span class="con">${esc(p.nombre)}${p.activo === 'No' ? ' <span class="tag" style="color:var(--faint)">Inactiva</span>' : ''}</span>
-      <span class="meta">Corte ${n(p.diaCorte) || '—'} · pago ${n(p.diaPago) || '—'} · próximo corte ${fd(i.corte)}${n(p.limite) ? ' · límite ' + fmt(p.limite) : ''}</span>
-      <span class="mon num">${mv ? (mv.monto === '' ? '—' : fmt(mv.monto, true)) : '—'}</span>
-      <span class="st">${mv ? `<span class="pill c-${semaforo(mv).c}">${semaforo(mv).t.replace(/^[●○◐✔➜] /, '')}</span>` : '<span class="mut" style="font-size:11.5px">Sin mov. ' + (i.ult ? etq(i.ult) : '') + '</span>'}</span>
-    </button>`; }).join('')}</div>` : `<div class="card empty" style="padding:16px">Agrega tus tarjetas para ver fecha de corte, fecha de pago y lo que debes en el mes.</div>`}
-  <div class="sec">Apartados y meses sin intereses · ${ap.length} <button class="link" data-act="nuevoPlan" data-t="Apartado">Agregar →</button></div>
-  ${ap.length ? `<div class="rows">${ap.map(p => { const i = planInfo(p);
-    return `<button class="row plan ap" data-act="editPlan" data-id="${p.id}">
-      <span class="con">${esc(p.nombre)}${i.liquidado ? ' <span class="tag" style="color:var(--pos)">Liquidado</span>' : ''}</span>
-      <span class="meta">${n(p.mensualidad) ? fmt(p.mensualidad) + ' × ' + (n(p.pagos) || '?') : 'Sin mensualidad'} · pagos ${i.hechos}/${n(p.pagos) || '?'}${i.termina ? ' · termina ' + etq(i.termina) : ''}</span>
-      <span class="mon num">${fmt(i.restante, true)}<small class="mut" style="display:block;font-size:10.5px;font-weight:500">restante</small></span>
-      <span class="bar pb"><span style="width:${Math.round(i.pct * 100)}%;${i.liquidado ? 'background:var(--pos)' : ''}"></span></span>
-    </button>`; }).join('')}</div>` : `<div class="card empty" style="padding:16px">Registra compras a meses o apartados (por ejemplo, el iPad) para ver cuánto llevas pagado y en qué mes terminas.</div>`}`;
-}
-function sheetPlan(p, tipoNuevo){
-  const nuevo = !p; p = p || { tipo: tipoNuevo || 'Tarjeta', nombre:'', concepto:'', diaCorte:'', diaPago:'', limite:'', total:'', mensualidad:'', pagos:'', inicio: S.meses.length ? S.meses[S.meses.length - 1].mes : '', previo:'', notas:'', activo:'Sí' };
-  const T = p.tipo === 'Tarjeta';
-  const nombres = [...new Set(S.conceptos.filter(c => c.tipo === 'Gasto').map(c => c.concepto).concat(S.movimientos.filter(m => m.tipo === 'Gasto').map(m => m.concepto)))].sort();
-  openSheet(`<h2>${nuevo ? (T ? 'Nueva tarjeta' : 'Nuevo apartado o compra a meses') : esc(p.nombre)}</h2>
-    <p class="lead">${T ? 'Se crea un concepto recurrente con el día de pago, en la categoría Tarjetas.' : 'Se crea un concepto recurrente con la mensualidad, desde el mes de inicio hasta el último pago.'}</p>
-    ${nuevo ? `<div class="seg"><button data-act="planTipo" data-t="Tarjeta" class="${T ? 'on' : ''}">Tarjeta</button><button data-act="planTipo" data-t="Apartado" class="${!T ? 'on' : ''}">Apartado / MSI</button></div>` : ''}
-    <div class="f"><label>Nombre</label><input id="plNom" value="${esc(p.nombre)}" placeholder="${T ? 'TDC Liverpool' : 'iPad'}"></div>
-    <div class="f"><label>Concepto vinculado</label><input id="plCon" list="dlPl" value="${esc(p.concepto)}" placeholder="Igual al nombre, o elige uno existente" autocomplete="off">
-      <datalist id="dlPl">${nombres.map(x => `<option value="${esc(x)}">`).join('')}</datalist>
-      <div class="hint">Si ya capturas este gasto con otro nombre (por ejemplo, «iPad apartado»), elígelo para sumar sus pagos.</div></div>
-    ${T ? `<div class="row2"><div class="f"><label>Día de corte</label><input id="plCorte" inputmode="numeric" value="${esc(p.diaCorte)}" placeholder="1–31"></div><div class="f"><label>Día límite de pago</label><input id="plPago" inputmode="numeric" value="${esc(p.diaPago)}" placeholder="1–31"></div></div>
-      <div class="f"><label>Límite de crédito (opcional)</label><input id="plLim" inputmode="decimal" value="${esc(p.limite)}"></div>`
-    : `<div class="row2"><div class="f"><label>Total</label><input id="plTot" inputmode="decimal" value="${esc(p.total)}" placeholder="$0"></div><div class="f"><label>Número de pagos</label><input id="plPagos" inputmode="numeric" value="${esc(p.pagos)}" placeholder="6, 12…"></div></div>
-      <div class="row2"><div class="f"><label>Mensualidad</label><input id="plMen" inputmode="decimal" value="${esc(p.mensualidad)}" placeholder="Se calcula sola"></div><div class="f"><label>Día de pago</label><input id="plPago" inputmode="numeric" value="${esc(p.diaPago)}" placeholder="1–31"></div></div>
-      <div class="row2"><div class="f"><label>Primer mes</label><input id="plIni" type="month" value="${esc(p.inicio)}"></div><div class="f"><label>Pagado antes</label><input id="plPrev" inputmode="decimal" value="${esc(p.previo)}" placeholder="$0"></div></div>
-      <div class="hint" style="font-size:12px;color:var(--muted);margin-top:6px">«Pagado antes»: lo que abonaste antes de usar la app o fuera de los meses registrados.</div>`}
-    <div class="f"><label>Notas</label><input id="plNotas" value="${esc(p.notas)}"></div>
-    ${!nuevo ? `<div class="f"><div class="toggle"><span><b>Activo</b><br><span class="mut" style="font-size:13px">Si lo desactivas, deja de agregarse a los meses nuevos.</span></span><button class="sw ${p.activo !== 'No' ? 'on' : ''}" id="plAct" data-act="sw"></button></div></div>` : ''}
-    <div class="acts">${nuevo ? '' : '<button class="btn danger" data-act="delPlan">Eliminar</button>'}<button class="btn" data-act="submit">Guardar</button></div>`,
-    async () => { const a = $('#plAct');
-      const d = { id: p.id, tipo: p.tipo, nombre: val('plNom'), concepto: val('plCon'), diaPago: val('plPago'), notas: val('plNotas'), activo: a ? a.classList.contains('on') : true };
-      if (T) Object.assign(d, { diaCorte: val('plCorte'), limite: val('plLim') }); else Object.assign(d, { total: val('plTot'), pagos: val('plPagos'), mensualidad: val('plMen'), inicio: val('plIni'), previo: val('plPrev') });
-      if (await call('guardarPlan', d)) { closeSheet(); toast(nuevo ? 'Agregado: aparecerá en tus meses' : 'Guardado'); } });
-  sheetPlan.cur = p;
-}
-
-/* ================== v2.1 · Comprobantes ================== */
 function comprobantesDe(movId){ return (S.comprobantes || []).filter(c => c.movId === movId); }
 function comprobantesHTML(m, ed){
-  const l = comprobantesDe(m.id);
-  return `<div class="f"><label>Comprobantes</label><div class="abonos">
-    ${l.map(c => `<div class="abr"><button class="lnk" data-act="verComp" data-id="${c.id}">${c.mime === 'application/pdf' ? '📄' : '🖼'} ${esc(c.nombre)}</button><span class="mut num" style="font-size:11.5px">${Math.max(1, Math.round(n(c.tamano) / 1024))} KB</span>${UI.online ? `<button class="x" data-act="delComp" data-id="${c.id}" aria-label="Eliminar">✕</button>` : '<span></span>'}</div>`).join('')}
+  const l = comprobantesDe(m.id), plan = String(m.id).indexOf('plan:') === 0;
+  return `<div class="f"><label>${plan ? 'Comprobante de la compra (ticket o voucher)' : 'Comprobantes'}</label><div class="abonos">
+    ${l.map(c => `<div class="abr"><button class="lnk" data-act="verComp" data-id="${c.id}" data-target="${esc(m.id)}">${c.mime === 'application/pdf' ? '📄' : '🖼'} ${esc(c.nombre)}</button><span class="mut num" style="font-size:11.5px">${Math.max(1, Math.round(n(c.tamano) / 1024))} KB</span>${UI.online ? `<button class="x" data-act="delComp" data-id="${c.id}" data-target="${esc(m.id)}" aria-label="Eliminar">✕</button>` : '<span></span>'}</div>`).join('')}
     ${!l.length ? '<div class="abr mut"><span>Sin comprobantes</span></div>' : ''}
-    ${UI.online ? `<label class="abfile"><input type="file" id="compFile" accept="image/*,application/pdf" hidden><span>＋ Adjuntar foto o PDF</span></label>` : ''}
+    ${UI.online ? `<label class="abfile"><input type="file" class="compFile" data-target="${esc(m.id)}" accept="image/*,application/pdf" hidden><span>＋ Adjuntar foto o PDF</span></label>` : ''}
   </div></div>`;
 }
+function reabrirDestino(target){ if (String(target).indexOf('plan:') === 0) { const p = S.planes.find(x => 'plan:' + x.id === target); UI.planModo = null; if (p) sheetPlan(p); } else reabrirMovSheet(target); }
 function leerArchivo(file){
   return new Promise((ok, mal) => {
     if (file.type === 'application/pdf') { if (file.size > 6e6) return mal(new Error('El PDF pesa más de 6 MB.')); const r = new FileReader(); r.onload = () => ok({ b64: String(r.result).split(',')[1], mime: file.type, nombre: file.name }); r.onerror = () => mal(r.error); return r.readAsDataURL(file); }
@@ -1255,20 +1216,20 @@ function leerArchivo(file){
   });
 }
 document.addEventListener('change', async e => {
-  if (e.target.id !== 'compFile' || !e.target.files[0]) return;
-  const id = sheetMov.cur && sheetMov.cur.id; if (!id) return;
+  if (!e.target.classList.contains('compFile') || !e.target.files[0]) return;
+  const id = e.target.dataset.target; if (!id) return;
   try { const f = await leerArchivo(e.target.files[0]);
-    if (await call('subirComprobante', id, f.nombre, f.mime, f.b64)) { reabrirMovSheet(id); toast('Comprobante guardado en Drive'); } }
+    if (await call('subirComprobante', id, f.nombre, f.mime, f.b64)) { reabrirDestino(id); toast('Comprobante guardado en Drive'); } }
   catch(err) { toast(err.message, true); }
 });
 async function verComprobante(id){
   try { const r = await conProgreso('verComprobante', () => rpc('verComprobante', id), 'Listo');
     const bin = atob(r.base64), u8 = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
     const url = URL.createObjectURL(new Blob([u8], { type: r.mime }));
-    const vuelta = sheetMov.cur ? sheetMov.cur.id : null;
+    const vuelta = verComprobante.target || (sheetMov.cur ? sheetMov.cur.id : null);
     openSheet(`<h2>${esc(r.nombre)}</h2><p class="lead">Comprobante guardado en tu Google Drive</p>
       ${r.mime === 'application/pdf' ? `<iframe class="compview" src="${url}"></iframe>` : `<img class="compview" src="${url}" alt="">`}
-      <div class="acts"><a class="btn ghost" href="${url}" download="${esc(r.nombre)}" target="_blank" rel="noopener">Descargar</a><button class="btn dark" data-act="${vuelta ? 'volverMov' : 'closeSheet'}" data-id="${vuelta || ''}">Volver</button></div>`);
+      <div class="acts"><a class="btn ghost" href="${url}" download="${esc(r.nombre)}" target="_blank" rel="noopener">Descargar</a><button class="btn dark" data-act="${vuelta ? 'volverDestino' : 'closeSheet'}" data-id="${vuelta || ''}">Volver</button></div>`);
   } catch(e) { toast(e.message, true); }
 }
 
@@ -1300,8 +1261,9 @@ Object.assign(ACT, {
   planTipo: d => sheetPlan(null, d.t),
   editPlan: d => sheetPlan(S.planes.find(p => p.id === d.id)),
   delPlan: async (d, el) => { if (!seguro(el, 'Toca otra vez para eliminar')) return; if (await call('borrarPlan', sheetPlan.cur.id)) { closeSheet(); toast('Eliminado (su concepto deja de ser recurrente)'); } },
-  verComp: d => verComprobante(d.id),
-  delComp: async (d, el) => { const id = sheetMov.cur.id; if (!seguro(el, '¿?')) return; if (await call('borrarComprobante', d.id)) { reabrirMovSheet(id); toast('Comprobante eliminado'); } },
+  verComp: d => { verComprobante.target = d.target; verComprobante(d.id); },
+  volverDestino: d => reabrirDestino(d.id),
+  delComp: async (d, el) => { const id = d.target; if (!seguro(el, '¿?')) return; if (await call('borrarComprobante', d.id)) { reabrirDestino(id); toast('Comprobante eliminado'); } },
   volverMov: d => reabrirMovSheet(d.id),
   exportar: () => sheetExportar(),
   pdfBajar: () => exportarPDF(false),
@@ -1355,6 +1317,181 @@ Object.assign(ACT, {
   reintentarLogin: () => pantallaLogin(),
   updLater: () => { sessionStorage.setItem('gj_updLater', '1'); $('#updModal').classList.remove('on'); },
   updGo: () => aplicarActualizacion()
+});
+
+/* ================== v2.3 · Planes: compras a meses dentro de la tarjeta ================== */
+function primerPagoDe(fecha, corte, pago){
+  const [y, m, d] = String(fecha).split('-').map(Number); const ym = y + '-' + String(m).padStart(2, '0');
+  if (!corte) return sumarMes(ym, 1);
+  const c = Math.min(corte, new Date(y, m, 0).getDate()), mc = d <= c ? ym : sumarMes(ym, 1);
+  if (!pago) return sumarMes(mc, 1);
+  return pago > corte ? mc : sumarMes(mc, 1);
+}
+const mesHoy = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); };
+const esMsi = p => p.tipo === 'Apartado' && p.modo === 'tarjeta';
+function tarjetaDe(p){ return (S.planes || []).find(t => t.id === p.tarjetaId && t.tipo === 'Tarjeta'); }
+function lineaTarjeta(t, mes){ return t ? S.movimientos.find(m => m.mes === mes && m.tipo === 'Gasto' && m.concepto === t.concepto) : null; }
+function tarjetaPagada(t, mes){ const m = lineaTarjeta(t, mes); return !!m && (m.estatus === 'Pagado' || (m.monto !== '' && aplicado(m) > 0 && saldo(m) <= 0)); }
+function msiInfo(p){
+  const n = Math.max(1, n_(p.pagos)), men = n_(p.mensualidad) || (n_(p.total) / n), t = tarjetaDe(p), hoy = mesHoy();
+  let mk = {}; try { mk = JSON.parse(p.marcas || '{}'); } catch(e) {}
+  const cal = [];
+  for (let k = 0; k < n; k++) {
+    const mes = sumarMes(p.inicio, k);
+    let pagado, origen;
+    if (k < n_(p.pagosHechos)) { pagado = true; origen = 'previo'; }
+    else if (mk[mes] === 1 || mk[mes] === 0) { pagado = mk[mes] === 1; origen = 'manual'; }
+    else { pagado = tarjetaPagada(t, mes); origen = 'auto'; }
+    cal.push({ k, mes, pagado, origen, estado: pagado ? 'pagado' : mes < hoy ? 'atrasado' : mes === hoy ? 'actual' : 'futuro' });
+  }
+  const hechos = cal.filter(x => x.pagado).length, total = n_(p.total);
+  const prox = cal.find(x => !x.pagado);
+  return { cal, n, men, hechos, total, restante: Math.max(0, total - hechos * men), pct: total ? Math.min(1, hechos / n) : 0, termina: sumarMes(p.inicio, n - 1),
+    prox, atrasados: cal.filter(x => x.estado === 'atrasado').length, liquidado: hechos >= n, t };
+}
+const n_ = x => n(x);
+function msiDelMes(t, mes){
+  return (S.planes || []).filter(p => esMsi(p) && p.activo !== 'No' && p.tarjetaId === t.id).map(p => { const i = msiInfo(p), c = i.cal.find(x => x.mes === mes); return c ? { p, i, c } : null; }).filter(Boolean);
+}
+function tarjetaDeConcepto(concepto){ return (S.planes || []).find(t => t.tipo === 'Tarjeta' && t.concepto === concepto); }
+function fechaPagoTxt(t, mes){ const d = n(t && t.diaPago); if (!d) return etq(mes); const [y, m] = mes.split('-').map(Number); return Math.min(d, new Date(y, m, 0).getDate()) + ' ' + MC[m - 1].toLowerCase() + ' ' + y; }
+
+function vPlanes(){
+  const tj = (S.planes || []).filter(p => p.tipo === 'Tarjeta'), msi = (S.planes || []).filter(esMsi), dir = (S.planes || []).filter(p => p.tipo === 'Apartado' && !esMsi(p));
+  const orden = UI.planOrden || 'tarjeta', hoy = mesHoy(), fd = f => f ? f.toLocaleDateString('es-MX', {day:'numeric', month:'short'}) : '—';
+  const filaMsi = p => { const i = msiInfo(p);
+    return `<button class="row plan ap" data-act="editPlan" data-id="${p.id}">
+      <span class="con">${esc(p.nombre)}${i.liquidado ? ' <span class="tag" style="color:var(--pos)">Liquidado</span>' : i.atrasados ? ` <span class="tag" style="color:var(--accent)">${i.atrasados} sin pagar</span>` : ''}${p.activo === 'No' ? ' <span class="tag" style="color:var(--faint)">Inactiva</span>' : ''}</span>
+      <span class="meta">${i.n === 1 ? 'Una exhibición' : fmt(i.men) + ' × ' + i.n} · ${i.hechos}/${i.n} pagos · ${i.liquidado ? 'terminó ' + etq(i.termina) : i.prox ? 'próximo ' + fechaPagoTxt(i.t, i.prox.mes) : ''}${orden === 'concepto' && i.t ? ' · ' + esc(i.t.nombre) : ''}</span>
+      <span class="mon num">${fmt(i.restante, true)}<small class="mut" style="display:block;font-size:10.5px;font-weight:500">restante</small></span>
+      <span class="bar pb"><span style="width:${Math.round(i.pct * 100)}%;${i.liquidado ? 'background:var(--pos)' : ''}"></span></span></button>`; };
+  const filaDir = p => { const i = planInfo(p);
+    return `<button class="row plan ap" data-act="editPlan" data-id="${p.id}">
+      <span class="con">${esc(p.nombre)}${i.liquidado ? ' <span class="tag" style="color:var(--pos)">Liquidado</span>' : ''}</span>
+      <span class="meta">${n(p.mensualidad) ? fmt(p.mensualidad) + ' × ' + (n(p.pagos) || '?') : 'Sin mensualidad'} · pagos ${i.hechos}/${n(p.pagos) || '?'}${i.termina ? ' · termina ' + etq(i.termina) : ''}</span>
+      <span class="mon num">${fmt(i.restante, true)}<small class="mut" style="display:block;font-size:10.5px;font-weight:500">restante</small></span>
+      <span class="bar pb"><span style="width:${Math.round(i.pct * 100)}%;${i.liquidado ? 'background:var(--pos)' : ''}"></span></span></button>`; };
+  let cuerpo = '';
+  if (orden === 'tarjeta') {
+    cuerpo = tj.map(t => { const mios = msi.filter(p => p.tarjetaId === t.id).sort((a, b) => (msiInfo(a).liquidado - msiInfo(b).liquidado) || (msiInfo(a).termina < msiInfo(b).termina ? -1 : 1));
+      const delMes = msiDelMes(t, hoy), cargoMes = sum(delMes, x => x.i.men), deuda = sum(mios, p => msiInfo(p).restante), lin = lineaTarjeta(t, hoy), i = planInfo(t);
+      return `<div class="grupo">
+        <button class="ghd" data-act="editPlan" data-id="${t.id}">
+          <span class="gnm">${IC.card.replace('<svg', '<svg style="width:18px;height:18px;color:var(--accent)"')} ${esc(t.nombre)}${t.activo === 'No' ? ' <span class="tag" style="color:var(--faint)">Inactiva</span>' : ''}</span>
+          <b class="num">${lin && lin.monto !== '' ? fmt(lin.monto, true) : '—'}</b>
+          <span class="gmeta">Corte ${n(t.diaCorte) || '—'} · pago ${n(t.diaPago) || '—'} · próximo corte ${fd(i.corte)}${lin ? ' · ' + etq(hoy) + ': ' + semaforo(lin).t.replace(/^[●○◐✔➜] /, '') : ''}</span>
+          <span class="gmeta num">A meses este mes <b style="color:var(--ink)">${fmt(cargoMes, true)}</b> (${delMes.length}) · deuda a meses <b style="color:var(--ink)">${fmt(deuda, true)}</b></span>
+        </button>
+        <button class="gpres" data-act="nuevoMsi" data-t="${t.id}">＋ Compra a meses en esta tarjeta</button>
+        ${mios.length ? `<div class="glist">${mios.map(filaMsi).join('')}</div>` : '<div class="empty" style="padding:10px;font-size:12.5px">Sin compras a meses en esta tarjeta.</div>'}
+      </div>`; }).join('') || `<div class="card empty" style="padding:16px">Primero agrega tus tarjetas (corte y día de pago); luego registras sus compras a meses.</div>`;
+    const huerf = msi.filter(p => !tarjetaDe(p));
+    if (huerf.length) cuerpo += `<div class="sec">Compras sin tarjeta válida</div><div class="rows">${huerf.map(filaMsi).join('')}</div>`;
+  } else {
+    const q = (UI.planQ || '').toLowerCase();
+    const todos = msi.map(p => ({ p, i: msiInfo(p), msi: true })).concat(dir.map(p => ({ p, i: planInfo(p), msi: false })))
+      .filter(x => !q || (x.p.nombre + ' ' + (x.msi && x.i.t ? x.i.t.nombre : '')).toLowerCase().includes(q))
+      .sort((a, b) => (a.i.liquidado - b.i.liquidado) || String(a.i.termina || '9999').localeCompare(String(b.i.termina || '9999')));
+    cuerpo = `<label class="search">${IC.search}<input id="planQ" placeholder="Buscar compra o tarjeta" value="${esc(UI.planQ || '')}" autocomplete="off"></label>
+      <div class="rows">${todos.map(x => x.msi ? filaMsi(x.p) : filaDir(x.p)).join('') || '<div class="empty">Sin compras registradas.</div>'}</div>`;
+  }
+  return `
+  <div style="display:flex;align-items:center;gap:8px">
+    <div class="filters" style="margin:0;flex:1"><button class="chip f ${orden === 'tarjeta' ? 'on' : ''}" data-act="planOrden" data-t="tarjeta">Por tarjeta</button><button class="chip f ${orden === 'concepto' ? 'on' : ''}" data-act="planOrden" data-t="concepto">Por concepto</button></div>
+    <button class="link" style="color:var(--accent);font-weight:600;font-size:13px" data-act="nuevoPlan" data-t="Tarjeta">＋ Tarjeta</button>
+  </div>
+  ${cuerpo}
+  ${orden === 'tarjeta' ? `<div class="sec">Apartados · pago directo · ${dir.length} <button class="link" data-act="nuevoPlan" data-t="Apartado">Agregar →</button></div>
+  ${dir.length ? `<div class="rows">${dir.map(filaDir).join('')}</div>` : `<div class="card empty" style="padding:14px;font-size:12.5px">Apartados en tienda u otros pagos a plazos que no van con tarjeta: tienen su propia línea en cada mes.</div>`}` : ''}`;
+}
+
+function sheetPlan(p, tipoNuevo, tarjetaPre){
+  const nuevo = !p;
+  const tjs = (S.planes || []).filter(x => x.tipo === 'Tarjeta' && x.activo !== 'No');
+  p = p || { tipo: tipoNuevo || 'Tarjeta', modo: tipoNuevo === 'Apartado' && tarjetaPre !== '' ? 'tarjeta' : 'directo', tarjetaId: tarjetaPre || (tjs[0] ? tjs[0].id : ''), nombre:'', concepto:'', diaCorte:'', diaPago:'', limite:'', total:'', mensualidad:'', pagos:'', inicio: S.meses.length ? S.meses[S.meses.length - 1].mes : '', previo:'', notas:'', activo:'Sí', fechaCompra: new Date().toISOString().slice(0, 10), pagosHechos: 0, primerPago: '' };
+  const T = p.tipo === 'Tarjeta', M = !T && (UI.planModo || p.modo) === 'tarjeta';
+  const nombres = [...new Set(S.conceptos.filter(c => c.tipo === 'Gasto').map(c => c.concepto).concat(S.movimientos.filter(m => m.tipo === 'Gasto').map(m => m.concepto)))].sort();
+  const convertir = !nuevo && !T && M && p.modo !== 'tarjeta';
+  if (convertir && !n(p.pagosHechos) && n(p.previo) && n(p.mensualidad)) p.pagosHechos = Math.round(n(p.previo) / n(p.mensualidad));
+  let calHTML = '';
+  if (!nuevo && esMsi(p)) { const i = msiInfo(p);
+    calHTML = `<div class="f"><label>Mensualidades · ${i.hechos}/${i.n} pagadas</label><div class="cal">${i.cal.map(c => `<button class="mcell ${c.estado}" data-act="marcaMsi" data-m="${c.mes}" data-o="${c.origen}" ${c.origen === 'previo' ? 'disabled' : ''}>
+      <b>${c.k + 1}</b><span>${MC[+c.mes.slice(5) - 1]} ${c.mes.slice(2, 4)}</span><i>${c.estado === 'pagado' ? (c.origen === 'manual' ? 'Pagado ✎' : c.origen === 'previo' ? 'Previo' : 'Pagado') : c.estado === 'atrasado' ? 'Sin pagar' : c.estado === 'actual' ? 'Este mes' : 'Futuro'}</i></button>`).join('')}</div>
+      <div class="hint">Se marcan solas cuando la tarjeta de ese mes queda como <b>Pagada</b>. Toca un mes para marcarlo a mano (pagado, pendiente o automático).</div></div>`; }
+  openSheet(`<h2>${nuevo ? (T ? 'Nueva tarjeta' : 'Nueva compra a meses o apartado') : esc(p.nombre)}</h2>
+    <p class="lead">${T ? 'Su pago mensual es una línea en Mes; sus compras a meses se ven como desglose dentro de ese pago.' : M ? 'Va dentro del pago de la tarjeta: no crea línea propia en Mes, así no se cuenta dos veces.' : 'Pago directo (apartado en tienda): tiene su propia línea con la mensualidad en cada mes.'}</p>
+    ${nuevo ? `<div class="seg"><button data-act="planTipo" data-t="Tarjeta" class="${T ? 'on' : ''}">Tarjeta</button><button data-act="planTipo" data-t="Apartado" class="${!T ? 'on' : ''}">Compra a meses / apartado</button></div>` : ''}
+    ${!T ? `<div class="f"><label>¿Cómo se paga?</label><div class="seg"><button data-act="planModo" data-t="tarjeta" class="${M ? 'on' : ''}">Dentro de una tarjeta</button><button data-act="planModo" data-t="directo" class="${!M ? 'on' : ''}">Pago directo</button></div></div>` : ''}
+    ${!T && M ? `<div class="f"><label>Tarjeta</label><select id="plTj">${tjs.map(t => `<option value="${t.id}" ${t.id === p.tarjetaId ? 'selected' : ''}>${esc(t.nombre)} · corte ${n(t.diaCorte) || '—'} · pago ${n(t.diaPago) || '—'}</option>`).join('') || '<option value="">Primero agrega una tarjeta</option>'}</select></div>` : ''}
+    <div class="f"><label>${T ? 'Nombre de la tarjeta' : 'Concepto de la compra'}</label><input id="plNom" value="${esc(p.nombre)}" placeholder="${T ? 'TDC BBVA Sarit' : '2 playeras Adidas · Sears'}"></div>
+    ${T ? `<div class="f"><label>Concepto en Mes (pago de la tarjeta)</label><input id="plCon" list="dlPl" value="${esc(p.concepto)}" placeholder="Igual al nombre, o elige el que ya usas" autocomplete="off"><datalist id="dlPl">${nombres.map(x => `<option value="${esc(x)}">`).join('')}</datalist></div>
+      <div class="row2"><div class="f"><label>Día de corte</label><input id="plCorte" inputmode="numeric" value="${esc(p.diaCorte)}" placeholder="1–31"></div><div class="f"><label>Día límite de pago</label><input id="plPago" inputmode="numeric" value="${esc(p.diaPago)}" placeholder="1–31"></div></div>
+      <div class="f"><label>Límite de crédito (opcional)</label><input id="plLim" inputmode="decimal" value="${esc(p.limite)}"></div>`
+    : M ? `<div class="row2"><div class="f"><label>Fecha de compra</label><input id="plFecha" type="date" value="${esc(p.fechaCompra || '')}"></div><div class="f"><label>Total</label><input id="plTot" inputmode="decimal" value="${esc(p.total)}" placeholder="$0"></div></div>
+      <div class="row2"><div class="f"><label>Meses</label><input id="plPagos" inputmode="numeric" value="${esc(p.pagos || 1)}" placeholder="1 = una exhibición"></div><div class="f"><label>Mensualidad</label><div class="ro num" id="plMenTxt">—</div></div></div>
+      <div class="f"><label>Primer pago</label><div class="ro" id="plPrimTxt">—</div>
+        <div class="hint"><span>Calculado con el corte de la tarjeta.</span><button data-act="primerManual">Cambiar</button></div>
+        <input id="plPrim" type="month" value="${esc(p.primerPago || '')}" class="${p.primerPago ? '' : 'hidden'}" style="margin-top:6px"></div>
+      <div class="f"><label>Mensualidades ya pagadas</label><input id="plHechos" inputmode="numeric" value="${esc(p.pagosHechos || 0)}">
+        <div class="hint" id="plSug"></div></div>
+      ${convertir ? `<label class="check"><input type="checkbox" id="plLimpiar" checked><span><b>Quitar sus partidas de los meses abiertos</b><br><span class="mut">Ya van dentro del pago de la tarjeta (ej. «${esc(p.concepto)}»).</span></span></label>` : ''}
+      ${calHTML}`
+    : `<div class="f"><label>Concepto vinculado</label><input id="plCon" list="dlPl" value="${esc(p.concepto)}" placeholder="Igual al nombre, o elige uno existente" autocomplete="off"><datalist id="dlPl">${nombres.map(x => `<option value="${esc(x)}">`).join('')}</datalist></div>
+      <div class="row2"><div class="f"><label>Total</label><input id="plTot" inputmode="decimal" value="${esc(p.total)}" placeholder="$0"></div><div class="f"><label>Número de pagos</label><input id="plPagos" inputmode="numeric" value="${esc(p.pagos)}" placeholder="6, 12…"></div></div>
+      <div class="row2"><div class="f"><label>Mensualidad</label><input id="plMen" inputmode="decimal" value="${esc(p.mensualidad)}" placeholder="Se calcula sola"></div><div class="f"><label>Día de pago</label><input id="plPago" inputmode="numeric" value="${esc(p.diaPago)}" placeholder="1–31"></div></div>
+      <div class="row2"><div class="f"><label>Primer mes</label><input id="plIni" type="month" value="${esc(p.inicio)}"></div><div class="f"><label>Pagado antes</label><input id="plPrev" inputmode="decimal" value="${esc(p.previo)}" placeholder="$0"></div></div>`}
+    <div class="f"><label>Notas</label><input id="plNotas" value="${esc(p.notas)}"></div>
+    ${!nuevo && !T ? comprobantesHTML({ id: 'plan:' + p.id }, true) : ''}
+    ${!nuevo ? `<div class="f"><div class="toggle"><span><b>Activo</b><br><span class="mut" style="font-size:13px">${T ? 'Si la desactivas, deja de agregarse a los meses nuevos.' : 'Si lo desactivas, deja de contarse.'}</span></span><button class="sw ${p.activo !== 'No' ? 'on' : ''}" id="plAct" data-act="sw"></button></div></div>` : ''}
+    <div class="acts">${nuevo ? '' : '<button class="btn danger" data-act="delPlan">Eliminar</button>'}<button class="btn" data-act="submit">Guardar</button></div>`,
+    async () => { const a = $('#plAct');
+      const d = { id: p.id, tipo: p.tipo, nombre: val('plNom'), notas: val('plNotas'), activo: a ? a.classList.contains('on') : true };
+      if (T) Object.assign(d, { concepto: val('plCon'), diaCorte: val('plCorte'), diaPago: val('plPago'), limite: val('plLim') });
+      else if (M) { const prim = $('#plPrim'); Object.assign(d, { modo: 'tarjeta', tarjetaId: val('plTj'), concepto: p.concepto || '', fechaCompra: val('plFecha'), total: val('plTot'), pagos: val('plPagos'), pagosHechos: val('plHechos'), primerPago: prim && !prim.classList.contains('hidden') ? prim.value : '', limpiar: !!($('#plLimpiar') && $('#plLimpiar').checked) }); }
+      else Object.assign(d, { modo: 'directo', concepto: val('plCon'), total: val('plTot'), pagos: val('plPagos'), mensualidad: val('plMen'), diaPago: val('plPago'), inicio: val('plIni'), previo: val('plPrev') });
+      if (await call('guardarPlan', d)) { closeSheet(); UI.planModo = null; toast(nuevo ? 'Guardado' : 'Actualizado'); } });
+  sheetPlan.cur = p;
+  if (!T && M) recalcPlan();
+}
+function recalcPlan(){
+  const tj = (S.planes || []).find(t => t.id === val('plTj')), tot = n(val('plTot')), np = Math.max(1, n(val('plPagos')) || 1);
+  const men = tot / np, prim = $('#plPrim'), f = val('plFecha');
+  const ini = prim && !prim.classList.contains('hidden') && prim.value ? prim.value : (f && tj ? primerPagoDe(f, n(tj.diaCorte), n(tj.diaPago)) : '');
+  if ($('#plMenTxt')) $('#plMenTxt').textContent = tot ? (np === 1 ? 'Una exhibición · ' + fmt(tot, true) : fmt(men, true) + ' × ' + np) : '—';
+  if ($('#plPrimTxt')) $('#plPrimTxt').textContent = ini ? fechaPagoTxt(tj, ini) + (np > 1 ? ' · último ' + fechaPagoTxt(tj, sumarMes(ini, np - 1)) : '') : 'Elige tarjeta y fecha de compra';
+  if ($('#plSug') && ini) { let k = 0; for (let i = 0; i < np; i++) if (sumarMes(ini, i) < mesHoy()) k++;
+    $('#plSug').innerHTML = `<span>Según la fecha, ya deberías llevar <b>${k}</b> de ${np}.</span>${String(k) !== val('plHechos') ? `<button data-act="usarSug" data-k="${k}">Usar ${k}</button>` : ''}`; }
+}
+document.addEventListener('input', e => { if (['plTot', 'plPagos', 'plFecha', 'plPrim', 'plHechos'].includes(e.target.id)) recalcPlan(); if (e.target.id === 'planQ') { UI.planQ = e.target.value; const pos = e.target.selectionStart; render(); const q = $('#planQ'); if (q) { q.focus(); try { q.setSelectionRange(pos, pos); } catch(_) {} } } });
+document.addEventListener('change', e => { if (e.target.id === 'plTj') recalcPlan(); });
+
+function sheetMarca(mes, origen){
+  const p = sheetPlan.cur;
+  openSheet(`<h2>${esc(p.nombre)} · ${etqL(mes)}</h2><p class="lead">Mensualidad de ${fmt(msiInfo(p).men, true)}. Normalmente se marca sola según el pago de la tarjeta.</p>
+    <div class="acts" style="flex-direction:column"><button class="btn" data-act="marcaSet" data-m="${mes}" data-v="pagado">Marcar como pagada</button><button class="btn ghost" data-act="marcaSet" data-m="${mes}" data-v="pendiente">Marcar como pendiente</button><button class="btn ghost" data-act="marcaSet" data-m="${mes}" data-v="auto">Automático (según la tarjeta)</button><button class="link" data-act="volverPlan" style="margin-top:6px;color:var(--muted)">Volver</button></div>`);
+}
+function desgloseTarjetaHTML(m){
+  const t = tarjetaDeConcepto(m.concepto); if (!t) return '';
+  const l = msiDelMes(t, m.mes); if (!l.length) return `<div class="f"><label>Compras a meses en este pago</label><div class="abonos"><div class="abr mut"><span>Ninguna en ${etq(m.mes)}</span></div></div></div>`;
+  const tot = sum(l, x => x.i.men);
+  return `<div class="f"><label>Compras a meses en este pago · ${l.length}</label><div class="abonos">
+    ${l.map(x => `<div class="abr"><span>${esc(x.p.nombre)} <span class="mut">· ${x.c.k + 1}/${x.i.n}</span></span><b class="num">${fmt(x.i.men, true)}</b><span></span></div>`).join('')}
+    <div class="abr" style="background:var(--soft)"><span><b>Total a meses</b>${m.monto !== '' ? ` <span class="mut">· otros cargos ${fmt(n(m.monto) - tot, true)}</span>` : ''}</span><b class="num">${fmt(tot, true)}</b><span></span></div>
+  </div>${m.monto === '' && editable(m.mes) ? `<div class="hint"><button data-act="usarMsi" data-v="${Math.round(tot * 100) / 100}">Usar ${fmt(tot, true)} como monto</button><span>(agrega tus otros cargos si los hay)</span></div>` : ''}</div>`;
+}
+Object.assign(ACT, {
+  nuevoPlan: d => { UI.planModo = null; sheetPlan(null, d.t); },
+  editPlan: d => { UI.planModo = null; sheetPlan(S.planes.find(p => p.id === d.id)); },
+  planTipo: d => { UI.planModo = null; sheetPlan(null, d.t); },
+  planOrden: d => { UI.planOrden = d.t; render(); },
+  planModo: d => { UI.planModo = d.t; sheetPlan(sheetPlan.cur && sheetPlan.cur.id ? sheetPlan.cur : null, 'Apartado'); },
+  nuevoMsi: d => { UI.planModo = 'tarjeta'; sheetPlan(null, 'Apartado', d.t); },
+  primerManual: () => { const i = $('#plPrim'); if (!i) return; i.classList.toggle('hidden'); if (!i.classList.contains('hidden') && !i.value) { const tj = (S.planes || []).find(t => t.id === val('plTj')); const f = val('plFecha'); if (f && tj) i.value = primerPagoDe(f, n(tj.diaCorte), n(tj.diaPago)); } recalcPlan(); },
+  usarSug: d => { $('#plHechos').value = d.k; recalcPlan(); },
+  marcaMsi: d => sheetMarca(d.m, d.o),
+  marcaSet: async d => { const id = sheetPlan.cur.id; if (await call('marcarMensualidad', id, d.m, d.v)) { const p = S.planes.find(x => x.id === id); UI.planModo = null; sheetPlan(p); } },
+  volverPlan: () => { UI.planModo = null; sheetPlan(S.planes.find(x => x.id === sheetPlan.cur.id)); },
+  usarMsi: d => { $('#mMonto').value = d.v; }
 });
 
 /* ================== Sincronización en tiempo real ================== */
