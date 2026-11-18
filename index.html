@@ -1,4 +1,4 @@
-<!-- Gastos Juances v2.4.0 -->
+<!-- Gastos Juances v2.5.0 -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -291,7 +291,34 @@ main{max-width:1040px;margin:0 auto;padding:14px 14px 24px}
 .row.plan{grid-template-columns:1fr auto;grid-template-areas:"con mon" "meta st"}
 .row.plan.ap{grid-template-areas:"con mon" "meta mon" "pb pb"}
 .row.plan .st{display:block}
-.row.plan .pb{grid-area:pb;margin-top:6px;height:4px}
+.row.plan .pb{height:5px;flex:1;margin:0}
+.row.plan .pbw{grid-area:pb;display:flex;align-items:center;gap:8px;margin-top:7px}
+.pbl{font-size:11px;font-weight:700;min-width:34px;text-align:right}
+.pb.a0>span{background:#C8102E}.pb.a1>span{background:#C88A12}.pb.a2>span{background:#2563A8}.pb.a3>span{background:#2E7D4F}
+.pu{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;background:color-mix(in srgb,#2563A8 10%,transparent);color:#2563A8}
+.pu.ok{background:color-mix(in srgb,var(--pos) 13%,transparent);color:var(--pos)}
+.pu.sus{background:color-mix(in srgb,#7A3E9D 10%,transparent);color:#7A3E9D}.pu.off{background:var(--soft);color:var(--faint)}
+.grupo.tj{border-top:4px solid var(--tc)}
+.grupo.tj>.ghd{background:color-mix(in srgb,var(--tc) 6%,var(--card))}
+.grupo.tj .gnm{font-size:15.5px}
+.adeudo{background:var(--tc);color:#fff;border-radius:9px;padding:4px 10px;font-weight:700;font-size:15px;text-align:right;line-height:1.15;align-self:start}
+.adeudo small{display:block;font-size:9.5px;font-weight:600;opacity:.85;text-transform:uppercase;letter-spacing:.06em}
+.proxbox{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:0;padding:10px 14px;background:color-mix(in srgb,var(--accent) 8%,var(--card));border-top:1px solid var(--line2);border-left:4px solid var(--accent)}
+.proxbox span{font-size:13px;font-weight:600;color:var(--ink)}
+.proxbox small{display:block;font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--accent)}
+.proxbox b{font-size:18px;color:var(--accent)}
+.proxbox.big b{font-size:22px}
+.proxsub{padding:6px 14px 8px;font-size:12px;color:var(--muted);border-bottom:1px solid var(--line2)}
+.gacts{display:flex;justify-content:flex-end;gap:14px;padding:7px 14px}
+.gacts button{color:var(--accent);font-weight:600;font-size:12.5px}
+.tdot{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:7px;vertical-align:0}
+.leyenda{padding:8px 14px 10px;font-size:11px;color:var(--muted);border-top:1px solid var(--line2)}
+.leyenda i{display:inline-block;width:9px;height:9px;border-radius:2px;margin:0 3px 0 8px;vertical-align:-1px}
+.liqs{border-top:1px solid var(--line2)}
+.liqs>summary{list-style:none;cursor:pointer;padding:10px 14px;font-size:12.5px;font-weight:700;color:var(--pos);background:color-mix(in srgb,var(--pos) 6%,var(--card))}
+.liqs>summary::-webkit-details-marker{display:none}
+.liqs[open]>summary .chev{transform:rotate(90deg)}
+.liqs .row{opacity:.8}
 @media(min-width:760px){.row.plan{grid-template-columns:minmax(0,1fr) 130px 120px;grid-template-areas:"con mon st" "meta mon st"}.row.plan.ap{grid-template-areas:"con mon mon" "meta mon mon" "pb pb pb"}.row.plan .meta{display:block}}
 .crow{width:100%;text-align:left}
 .crow.over .bar span{background:var(--accent)!important}
@@ -415,9 +442,10 @@ const fechaHora = iso => iso ? new Date(iso).toLocaleString('es-MX', {day:'numer
 const hora = iso => new Date(iso).toLocaleTimeString('es-MX', {hour:'2-digit', minute:'2-digit'});
 
 /* ================== Versión ================== */
-const APP_VERSION = '2.4.0';
+const APP_VERSION = '2.5.0';
 const APP_FECHA = '17 nov 2026';
 const CHANGELOG = [
+  { v: '2.5.0', f: '18 nov 2026', c: ['Suscripciones y servicios sin fecha de fin (izzi, Spotify, Amazon…) dentro de una tarjeta: se cargan en el corte y se suman cada mes al pago de la tarjeta', 'Cambio de precio desde el pago que elijas (los anteriores conservan su monto) y cancelación con último pago', 'Barras de avance con color: inicio, a medio camino, por terminar y liquidado (verde), con porcentaje', 'Las compras liquidadas y suscripciones canceladas pasan al final de cada tarjeta en una sección plegable', 'Cada tarjeta con su color, adeudo en etiqueta y el próximo pago resaltado; pago comprometido del mes siguiente destacado en el resumen', 'Compras de una exhibición con etiqueta «Pago único · fecha» en lugar de barra', 'Reporte PDF de adeudos para compartir: indicadores, calendario de pagos para apartar, detalle por tarjeta con barras de avance y lo liquidado al final'] },
   { v: '2.4.0', f: '17 nov 2026', c: ['El pago de cada tarjeta en Mes se arma solo con la suma de sus compras de ese mes; ya no usa un monto fijo ni el del mes anterior', 'Si una tarjeta no tiene compras en un mes no aparece su línea; puedes capturar un pago a mano', 'Pagar más de lo que suman las compras se anota como «pagado de más» (atrasados o compras aún sin capturar), sin alertas', 'Planes: resumen de adeudo total, pago de este mes y del siguiente, límite usado y disponible, y totales por tarjeta', 'Al dar de alta una tarjeta ya no se liga un concepto'] },
   { v: '2.3.0', f: '17 nov 2026', c: ['Compras a meses dentro de la tarjeta: ya no se capturan en Mes; van como desglose dentro del pago de la tarjeta (sin doble conteo)', 'Fecha de compra: el primer pago se calcula con el día de corte y el día límite de la tarjeta (ej. compra el 18 nov con corte 14 → se paga en enero)', 'Avance automático: cada mensualidad cuenta como pagada cuando la tarjeta de ese mes queda Pagada; también se puede marcar a mano', 'Pagos ya hechos como número de mensualidades, con sugerencia según la fecha', 'Planes ordenado por tarjeta (con total a meses del mes y deuda restante) o por concepto con buscador', 'Comprobante (ticket o voucher) en cada compra a meses o apartado', 'Conversión: al pasar una compra existente a «dentro de la tarjeta» se quitan sus partidas de los meses abiertos'] },
   { v: '2.2.0', f: '17 nov 2026', c: ['Registro con aprobación: quien entra con su Gmail queda como Usuario pendiente y el administrador recibe un push y un correo para aprobar o rechazar', 'Avisos push por partida: 3, 2 y 1 días antes, el día del vencimiento y cada día de atraso con su contador', 'Correo de resumen diario siempre (con o sin pagos pendientes) con el estado del mes', 'Los avisos se revisan cada hora y se envían una vez al día: si una hora falla, la siguiente lo recupera; el activador se repara solo', 'Ventana emergente de nueva versión con botón Actualizar ahora', 'Administración → Sistema: estado de los avisos y botón «Enviar ahora»'] },
@@ -698,7 +726,7 @@ function vMes(){
 }
 function itemHTML(m){
   const s = semaforo(m), ap = aplicado(m), sd = saldo(m), sinM = m.monto === '';
-  const meta = [m.categoria, n(m.dia) ? 'día ' + n(m.dia) : '', sinM && m.mesAnterior !== '' ? 'ant. ' + fmt(m.mesAnterior) : '', !sinM && sd !== 0 && s.k !== 'ok' ? 'saldo ' + fmt(sd) : '', !sinM && sd < 0 ? 'pagado de más ' + fmt(-sd) : '', m.notas ? '✎' : '', comprobantesDe(m.id).length ? '📎' + comprobantesDe(m.id).length : '', (() => { const t = tarjetaDeConcepto(m.concepto); if (!t) return ''; const l = msiDelMes(t, m.mes); return l.length ? 'incluye ' + l.length + ' a meses ' + fmt(sum(l, x => x.i.men)) : ''; })()].filter(Boolean).join(' · ');
+  const meta = [m.categoria, n(m.dia) ? 'día ' + n(m.dia) : '', sinM && m.mesAnterior !== '' ? 'ant. ' + fmt(m.mesAnterior) : '', !sinM && sd !== 0 && s.k !== 'ok' ? 'saldo ' + fmt(sd) : '', !sinM && sd < 0 ? 'pagado de más ' + fmt(-sd) : '', m.notas ? '✎' : '', comprobantesDe(m.id).length ? '📎' + comprobantesDe(m.id).length : '', (() => { const t = tarjetaDeConcepto(m.concepto); if (!t) return ''; const l = msiDelMes(t, m.mes); return l.length ? 'incluye ' + l.length + (l.length === 1 ? ' cargo ' : ' cargos ') + fmt(sum(l, x => x.i.men)) : ''; })()].filter(Boolean).join(' · ');
   return `<button class="row" data-act="editMov" data-id="${m.id}">
     <span class="con">${esc(m.concepto)}${m.origen === 'transferido' ? '<span class="tag">Transf.</span>' : ''}</span>
     <span class="meta">${esc(meta)}</span>
@@ -1261,7 +1289,7 @@ Object.assign(ACT, {
   nuevoPlan: d => sheetPlan(null, d.t),
   planTipo: d => sheetPlan(null, d.t),
   editPlan: d => sheetPlan(S.planes.find(p => p.id === d.id)),
-  delPlan: async (d, el) => { if (!seguro(el, 'Toca otra vez para eliminar')) return; if (await call('borrarPlan', sheetPlan.cur.id)) { closeSheet(); toast('Eliminado (su concepto deja de ser recurrente)'); } },
+  delPlan: async (d, el) => { if (!seguro(el, 'Toca otra vez para eliminar')) return; if (await call('borrarPlan', sheetPlan.cur.id)) { closeSheet(); toast('Eliminado'); } },
   verComp: d => { verComprobante.target = d.target; verComprobante(d.id); },
   volverDestino: d => reabrirDestino(d.id),
   delComp: async (d, el) => { const id = d.target; if (!seguro(el, '¿?')) return; if (await call('borrarComprobante', d.id)) { reabrirDestino(id); toast('Comprobante eliminado'); } },
@@ -1351,98 +1379,351 @@ function msiInfo(p){
     prox, atrasados: cal.filter(x => x.estado === 'atrasado').length, liquidado: hechos >= n, t };
 }
 const n_ = x => n(x);
-function msiDelMes(t, mes){
-  return (S.planes || []).filter(p => esMsi(p) && p.activo !== 'No' && p.tarjetaId === t.id).map(p => { const i = msiInfo(p), c = i.cal.find(x => x.mes === mes); return c ? { p, i, c } : null; }).filter(Boolean);
-}
 function tarjetaDeConcepto(concepto){ return (S.planes || []).find(t => t.tipo === 'Tarjeta' && t.concepto === concepto); }
 function fechaPagoTxt(t, mes){ const d = n(t && t.diaPago); if (!d) return etq(mes); const [y, m] = mes.split('-').map(Number); return Math.min(d, new Date(y, m, 0).getDate()) + ' ' + MC[m - 1].toLowerCase() + ' ' + y; }
 
-function resumenTarjeta(t){
-  const hoy = mesHoy(), sig = sumarMes(hoy, 1);
-  const mios = (S.planes || []).filter(p => esMsi(p) && p.tarjetaId === t.id).sort((a, b) => (msiInfo(a).liquidado - msiInfo(b).liquidado) || (msiInfo(a).termina < msiInfo(b).termina ? -1 : 1));
-  const activas = mios.filter(p => p.activo !== 'No');
-  const deuda = sum(activas, p => msiInfo(p).restante);
-  const act = sum(msiDelMes(t, hoy), x => x.i.men), cargoSig = sum(msiDelMes(t, sig), x => x.i.men);
-  const fin = activas.map(p => msiInfo(p)).filter(i => !i.liquidado).map(i => i.termina).sort().pop() || '';
-  return { mios, deuda, act, cargoSig, sig, limite: n(t.limite), vivas: activas.filter(p => !msiInfo(p).liquidado).length, fin };
+/* ================== v2.5 · Suscripciones, colores y avance ================== */
+const COLTJ = ['#1F4E8C', '#7A3E9D', '#0F7B6C', '#B7791F', '#8C1D40', '#475569', '#2F7D32', '#9A3412'];
+function colorTj(t){ const l = (S.planes || []).filter(p => p.tipo === 'Tarjeta'); const i = Math.max(0, l.findIndex(x => x.id === (t && t.id))); return COLTJ[i % COLTJ.length]; }
+const esSus = p => p.tipo === 'Suscripcion';
+function preciosSus(p){ try { const l = JSON.parse(p.precios || '[]'); return Array.isArray(l) && l.length ? l : [{ desde: p.inicio, monto: n(p.mensualidad) }]; } catch(e) { return [{ desde: p.inicio, monto: n(p.mensualidad) }]; } }
+function precioSus(p, mes){ const l = preciosSus(p).filter(x => x.desde <= mes); return l.length ? n(l[l.length - 1].monto) : n(p.mensualidad); }
+const susCobra = (p, mes) => !!p.inicio && mes >= p.inicio && (!p.hasta || mes <= p.hasta);
+const susViva = p => !p.hasta || p.hasta >= mesHoy();
+const hoyISO = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+function msiDelMes(t, mes){
+  const l = (S.planes || []).filter(p => esMsi(p) && p.activo !== 'No' && p.tarjetaId === t.id).map(p => { const i = msiInfo(p), c = i.cal.find(x => x.mes === mes); return c ? { p, i, c } : null; }).filter(Boolean);
+  const s = (S.planes || []).filter(p => esSus(p) && p.tarjetaId === t.id && susCobra(p, mes)).map(p => ({ p, i: { men: precioSus(p, mes), sus: true, n: 0 }, c: { k: 0, mes } }));
+  return l.concat(s);
 }
-function resumenDeudaHTML(tj, dir){
-  if (!tj.length && !dir.length) return '';
-  const hoy = mesHoy(), sig = sumarMes(hoy, 1), rs = tj.map(t => ({ t, r: resumenTarjeta(t) }));
-  const dDir = sum(dir.filter(p => p.activo !== 'No'), p => planInfo(p).restante);
+/* Próximo pago de la tarjeta: este mes si aún no se paga; si ya se pagó, el siguiente */
+function proxMesTj(t){ const hoy = mesHoy(), sig = sumarMes(hoy, 1);
+  if (tarjetaPagada(t, hoy)) return sig;
+  /* Sin línea este mes: si no hay cargos o ya pasó el día de pago, el próximo es el siguiente */
+  if (!lineaTarjeta(t, hoy) && (!sum(msiDelMes(t, hoy), x => x.i.men) || (n(t.diaPago) && new Date().getDate() > n(t.diaPago)))) return sig;
+  return hoy; }
+function avance(pct, liq){ if (liq || pct >= 0.999) return { k: 'a3', t: 'Liquidado', c: '#2E7D4F' }; if (pct >= 2 / 3) return { k: 'a2', t: 'Por terminar', c: '#2563A8' }; if (pct >= 1 / 3) return { k: 'a1', t: 'A medio camino', c: '#C88A12' }; return { k: 'a0', t: 'Inicio', c: '#C8102E' }; }
+
+function resumenTarjeta(t){
+  const hoy = mesHoy(), sig = sumarMes(hoy, 1), prox = proxMesTj(t);
+  const ord = (a, b) => String(msiInfo(a).termina).localeCompare(String(msiInfo(b).termina));
+  const mios = (S.planes || []).filter(p => esMsi(p) && p.tarjetaId === t.id);
+  const vivas = mios.filter(p => p.activo !== 'No' && !msiInfo(p).liquidado).sort(ord);
+  const liq = mios.filter(p => p.activo === 'No' || msiInfo(p).liquidado).sort((a, b) => String(msiInfo(b).termina).localeCompare(String(msiInfo(a).termina)));
+  const subs = (S.planes || []).filter(p => esSus(p) && p.tarjetaId === t.id);
+  const subsV = subs.filter(susViva), subsF = subs.filter(p => !susViva(p));
+  const susMes = sum(subsV, p => precioSus(p, prox));
+  const deudaMsi = sum(vivas, p => msiInfo(p).restante), deudaSus = sum(subsV.filter(p => susCobra(p, prox)), p => precioSus(p, prox));
+  const cargo = mes => sum(msiDelMes(t, mes), x => x.i.men);
+  const fin = vivas.map(p => msiInfo(p).termina).sort().pop() || '';
+  return { mios, vivas, liq, subs, subsV, subsF, susMes, deuda: deudaMsi + deudaSus, deudaMsi, deudaSus, act: cargo(hoy), cargoSig: cargo(sig), sig, prox, cargoProx: cargo(prox), cargo,
+    limite: n(t.limite), fin, pagadoHoy: tarjetaPagada(t, hoy), lineaHoy: lineaTarjeta(t, hoy) };
+}
+function datosPlanes(){
+  const tj = (S.planes || []).filter(p => p.tipo === 'Tarjeta'), dir = (S.planes || []).filter(p => p.tipo === 'Apartado' && !esMsi(p));
+  const hoy = mesHoy(), sig = sumarMes(hoy, 1), rs = tj.map(t => ({ t, r: resumenTarjeta(t), c: colorTj(t) }));
+  const dirV = dir.filter(p => p.activo !== 'No' && !planInfo(p).liquidado), dirL = dir.filter(p => p.activo === 'No' || planInfo(p).liquidado);
+  const dDir = sum(dirV, p => planInfo(p).restante), menDir = sum(dirV, p => n(p.mensualidad));
   const deudaT = sum(rs, x => x.r.deuda), total = deudaT + dDir;
-  const pagoAct = sum(rs, x => x.r.act) + sum(dir.filter(p => p.activo !== 'No' && planInfo(p).restante > 0), p => n(p.mensualidad));
-  const pagoSig = sum(rs, x => x.r.cargoSig);
+  const pagoAct = sum(rs, x => x.r.act) + menDir, pagoSig = sum(rs, x => x.r.cargoSig) + menDir;
   const conLim = rs.filter(x => x.r.limite), lim = sum(conLim, x => x.r.limite), usadoLim = sum(conLim, x => x.r.deuda);
-  const fin = rs.map(x => x.r.fin).filter(Boolean).sort().pop();
-  const pct = lim ? usadoLim / lim : 0, cls = !lim ? '' : pct >= .7 ? 'over' : pct >= .4 ? 'near' : 'okb';
-  const fila = (nom, v, extra) => `<div class="abr"><span>${nom}${extra ? ` <span class="mut">· ${extra}</span>` : ''}</span><b class="num">${fmt(v, true)}</b><span></span></div>`;
-  return `<div class="grupo ${cls}" style="margin-top:12px">
+  const fin = rs.map(x => x.r.fin).concat(dirV.map(p => planInfo(p).termina)).filter(Boolean).sort().pop() || '';
+  const susMes = sum(rs, x => x.r.susMes), nSus = sum(rs, x => x.r.subsV.length);
+  return { tj, dir, dirV, dirL, rs, hoy, sig, dDir, menDir, deudaT, total, pagoAct, pagoSig, lim, usadoLim, fin, susMes, nSus };
+}
+function barraAv(pct, liq){ const a = avance(pct, liq), w = liq ? 100 : Math.round(pct * 100);
+  return `<span class="pbw"><span class="bar pb ${a.k}"><span style="width:${w}%"></span></span><b class="pbl" style="color:${a.c}">${w}%</b></span>`; }
+function resumenDeudaHTML(D){
+  if (!D.tj.length && !D.dir.length) return '';
+  const pct = D.lim ? D.usadoLim / D.lim : 0, cls = !D.lim ? '' : pct >= .7 ? 'over' : pct >= .4 ? 'near' : 'okb';
+  const fila = (dot, nom, v, extra) => `<div class="abr"><span>${dot ? `<i class="tdot" style="background:${dot}"></i>` : ''}${nom}${extra ? ` <span class="mut">· ${extra}</span>` : ''}</span><b class="num">${fmt(v, true)}</b><span></span></div>`;
+  return `<div class="grupo resumen ${cls}" style="margin-top:12px">
     <div class="ghd" style="cursor:default">
       <span class="gnm" style="font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)">Adeudo total</span>
-      <b class="num" style="font-size:22px">${fmt(total, true)}</b>
-      <span class="gmeta">${tj.length} ${tj.length === 1 ? 'tarjeta' : 'tarjetas'}${dir.length ? ' y ' + dir.length + (dir.length === 1 ? ' apartado' : ' apartados') : ''} · solo lo que tienes capturado${fin ? ' · terminas de pagar ' + etq(fin).toLowerCase() : ''}</span>
-      ${lim ? `<span class="gmeta num">Límite total ${fmt(lim, true)} · usado ${Math.round(pct * 100)}% · disponible <b style="color:var(--ink)">${fmt(lim - usadoLim, true)}</b></span><span class="gbar"><span style="width:${Math.min(100, Math.round(pct * 100))}%"></span></span>` : ''}
+      <b class="num" style="font-size:22px">${fmt(D.total, true)}</b>
+      <span class="gmeta">${D.tj.length} ${D.tj.length === 1 ? 'tarjeta' : 'tarjetas'}${D.dirV.length ? ' y ' + D.dirV.length + (D.dirV.length === 1 ? ' apartado' : ' apartados') : ''} · solo lo capturado${D.fin ? ' · terminas de pagar ' + etq(D.fin).toLowerCase() : ''}</span>
+      ${D.lim ? `<span class="gmeta num">Límite total ${fmt(D.lim, true)} · usado ${Math.round(pct * 100)}% · disponible <b style="color:var(--ink)">${fmt(D.lim - D.usadoLim, true)}</b></span><span class="gbar"><span style="width:${Math.min(100, Math.round(pct * 100))}%"></span></span>` : ''}
     </div>
-    <div class="kpis" style="margin:0;border:0;border-top:1px solid var(--line2);border-radius:0">${kpi('Pago ' + etq(hoy).toLowerCase(), fmt(pagoAct, true), 'compras de este mes')}${kpi('Pago ' + etq(sig).toLowerCase(), fmt(pagoSig, true), 'según lo capturado')}</div>
+    <div class="proxbox big"><span><small>Pago comprometido</small>${etqL(D.sig)}</span><b class="num">${fmt(D.pagoSig, true)}</b></div>
     <div class="abonos" style="border:0;border-top:1px solid var(--line2);border-radius:0">
-      ${rs.map(x => fila(esc(x.t.nombre), x.r.deuda, x.r.limite ? Math.round(x.r.deuda / x.r.limite * 100) + '% del límite' : x.r.vivas + (x.r.vivas === 1 ? ' compra' : ' compras'))).join('')}
-      ${dir.length ? fila('Apartados · pago directo', dDir, dir.length + (dir.length === 1 ? ' apartado' : ' apartados')) : ''}
+      ${fila('', etqL(D.hoy), D.pagoAct, 'este mes')}
+      ${D.nSus ? fila('', 'Suscripciones', D.susMes, D.nSus + (D.nSus === 1 ? ' activa · al mes' : ' activas · al mes')) : ''}
     </div>
+    <div class="abonos" style="border:0;border-top:1px solid var(--line2);border-radius:0">
+      ${D.rs.map(x => fila(x.c, esc(x.t.nombre), x.r.deuda, x.r.limite ? Math.round(x.r.deuda / x.r.limite * 100) + '% del límite' : x.r.vivas.length + (x.r.vivas.length === 1 ? ' compra' : ' compras'))).join('')}
+      ${D.dirV.length ? fila('', 'Apartados · pago directo', D.dDir, D.dirV.length + (D.dirV.length === 1 ? ' apartado' : ' apartados')) : ''}
+    </div>
+    <div class="leyenda">Avance: <i style="background:#C8102E"></i>inicio <i style="background:#C88A12"></i>a medio camino <i style="background:#2563A8"></i>por terminar <i style="background:#2E7D4F"></i>liquidado</div>
   </div>`;
 }
 function vPlanes(){
-  const tj = (S.planes || []).filter(p => p.tipo === 'Tarjeta'), msi = (S.planes || []).filter(esMsi), dir = (S.planes || []).filter(p => p.tipo === 'Apartado' && !esMsi(p));
-  const orden = UI.planOrden || 'tarjeta', hoy = mesHoy(), fd = f => f ? f.toLocaleDateString('es-MX', {day:'numeric', month:'short'}) : '—';
-  const filaMsi = p => { const i = msiInfo(p);
+  const D = datosPlanes(), { tj, dir } = D, msi = (S.planes || []).filter(esMsi), subs = (S.planes || []).filter(esSus);
+  const orden = UI.planOrden || 'tarjeta', hoy = D.hoy, fd = f => f ? f.toLocaleDateString('es-MX', {day:'numeric', month:'short'}) : '—';
+  const filaMsi = p => { const i = msiInfo(p), unico = i.n === 1;
     return `<button class="row plan ap" data-act="editPlan" data-id="${p.id}">
       <span class="con">${esc(p.nombre)}${i.liquidado ? ' <span class="tag" style="color:var(--pos)">Liquidado</span>' : i.atrasados ? ` <span class="tag" style="color:var(--accent)">${i.atrasados} sin pagar</span>` : ''}${p.activo === 'No' ? ' <span class="tag" style="color:var(--faint)">Inactiva</span>' : ''}</span>
-      <span class="meta">${i.n === 1 ? 'Una exhibición' : fmt(i.men) + ' × ' + i.n} · ${i.hechos}/${i.n} pagos · ${i.liquidado ? 'terminó ' + etq(i.termina) : i.prox ? 'próximo ' + fechaPagoTxt(i.t, i.prox.mes) : ''}${orden === 'concepto' && i.t ? ' · ' + esc(i.t.nombre) : ''}</span>
-      <span class="mon num">${fmt(i.restante, true)}<small class="mut" style="display:block;font-size:10.5px;font-weight:500">restante</small></span>
-      <span class="bar pb"><span style="width:${Math.round(i.pct * 100)}%;${i.liquidado ? 'background:var(--pos)' : ''}"></span></span></button>`; };
+      <span class="meta">${unico ? 'Una exhibición' : fmt(i.men) + ' × ' + i.n + ' · ' + i.hechos + '/' + i.n + ' pagos'}${!unico ? ' · ' + (i.liquidado ? 'terminó ' + etq(i.termina) : i.prox ? 'próximo ' + fechaPagoTxt(i.t, i.prox.mes) : '') : ''}${orden === 'concepto' && i.t ? ' · ' + esc(i.t.nombre) : ''}</span>
+      <span class="mon num">${fmt(unico && i.liquidado ? i.total : i.restante, true)}<small class="mut" style="display:block;font-size:10.5px;font-weight:500">${unico && i.liquidado ? 'pagado' : 'restante'}</small></span>
+      ${unico ? `<span class="pbw"><span class="pu ${i.liquidado ? 'ok' : ''}">${i.liquidado ? 'Pagado · ' + fechaPagoTxt(i.t, i.termina) : 'Pago único · ' + fechaPagoTxt(i.t, i.termina)}</span></span>` : barraAv(i.pct, i.liquidado)}</button>`; };
+  const filaSus = p => { const t = tarjetaDe(p), viva = susViva(p), px = t ? proxMesTj(t) : hoy, mon = precioSus(p, viva && susCobra(p, px) ? px : (p.hasta || px));
+    return `<button class="row plan ap" data-act="editPlan" data-id="${p.id}">
+      <span class="con">${esc(p.nombre)} <span class="tag" style="color:${viva ? 'var(--info)' : 'var(--faint)'}">${viva ? 'Suscripción' : 'Cancelada'}</span></span>
+      <span class="meta">Cargo en el corte (día ${n(t && t.diaCorte) || '—'}) · desde ${etq(p.inicio).toLowerCase()}${p.hasta ? ' · último pago ' + etq(p.hasta).toLowerCase() : ''}${orden === 'concepto' && t ? ' · ' + esc(t.nombre) : ''}</span>
+      <span class="mon num">${fmt(mon, true)}<small class="mut" style="display:block;font-size:10.5px;font-weight:500">al mes</small></span>
+      <span class="pbw"><span class="pu sus ${viva ? '' : 'off'}">${viva ? (susCobra(p, px) ? 'Próximo cargo · ' + fechaPagoTxt(t, px) : 'Empieza ' + fechaPagoTxt(t, p.inicio)) : 'Sin cargos desde ' + etq(sumarMes(p.hasta, 1)).toLowerCase()}</span></span></button>`; };
   const filaDir = p => { const i = planInfo(p);
     return `<button class="row plan ap" data-act="editPlan" data-id="${p.id}">
       <span class="con">${esc(p.nombre)}${i.liquidado ? ' <span class="tag" style="color:var(--pos)">Liquidado</span>' : ''}</span>
       <span class="meta">${n(p.mensualidad) ? fmt(p.mensualidad) + ' × ' + (n(p.pagos) || '?') : 'Sin mensualidad'} · pagos ${i.hechos}/${n(p.pagos) || '?'}${i.termina ? ' · termina ' + etq(i.termina) : ''}</span>
       <span class="mon num">${fmt(i.restante, true)}<small class="mut" style="display:block;font-size:10.5px;font-weight:500">restante</small></span>
-      <span class="bar pb"><span style="width:${Math.round(i.pct * 100)}%;${i.liquidado ? 'background:var(--pos)' : ''}"></span></span></button>`; };
+      ${barraAv(i.pct, i.liquidado)}</button>`; };
+  const plegable = (k, l, txt) => !l.length ? '' : `<details class="liqs" ${UI.liqAbiertas && UI.liqAbiertas[k] ? 'open' : ''} data-k="${k}"><summary><span class="chev">›</span> ${txt} · ${l.length}</summary><div class="glist">${l.join('')}</div></details>`;
   let cuerpo = '';
   if (orden === 'tarjeta') {
-    cuerpo = tj.map(t => { const r = resumenTarjeta(t), mios = r.mios, lin = lineaTarjeta(t, hoy), i = planInfo(t);
+    cuerpo = D.rs.map(({ t, r, c }) => { const i = planInfo(t);
       const pct = r.limite ? r.deuda / r.limite : 0, cls = !r.limite ? '' : pct >= .7 ? 'over' : pct >= .4 ? 'near' : 'okb';
-      return `<div class="grupo ${cls}">
+      const otro = r.prox === hoy ? r.sig : hoy, linH = r.lineaHoy;
+      return `<div class="grupo tj ${cls}" style="--tc:${c}">
         <button class="ghd" data-act="editPlan" data-id="${t.id}">
-          <span class="gnm">${IC.card.replace('<svg', '<svg style="width:18px;height:18px;color:var(--accent)"')} ${esc(t.nombre)}${t.activo === 'No' ? ' <span class="tag" style="color:var(--faint)">Inactiva</span>' : ''}</span>
-          <b class="num">${fmt(r.deuda, true)}<small class="mut" style="display:block;font-size:10.5px;font-weight:500;text-align:right">adeudo</small></b>
-          <span class="gmeta">Corte ${n(t.diaCorte) || '—'} · pago ${n(t.diaPago) || '—'} · próximo corte ${fd(i.corte)}${lin ? ' · ' + etq(hoy) + ': ' + semaforo(lin).t.replace(/^[●○◐✔➜] /, '') : ''}</span>
-          <span class="gmeta num">Pago ${etq(hoy).toLowerCase()} <b style="color:var(--ink)">${fmt(r.act, true)}</b> · ${etq(r.sig).toLowerCase()} <b style="color:var(--ink)">${fmt(r.cargoSig, true)}</b> · ${r.vivas} ${r.vivas === 1 ? 'compra activa' : 'compras activas'}</span>
+          <span class="gnm">${IC.card.replace('<svg', '<svg style="width:18px;height:18px;color:var(--tc)"')} ${esc(t.nombre)}${t.activo === 'No' ? ' <span class="tag" style="color:var(--faint)">Inactiva</span>' : ''}</span>
+          <span class="adeudo num">${fmt(r.deuda, true)}<small>adeudo</small></span>
+          <span class="gmeta">Corte ${n(t.diaCorte) || '—'} · pago ${n(t.diaPago) || '—'} · próximo corte ${fd(i.corte)} · ${r.vivas.length} ${r.vivas.length === 1 ? 'compra activa' : 'compras activas'}${r.subsV.length ? ' · ' + r.subsV.length + (r.subsV.length === 1 ? ' suscripción' : ' suscripciones') : ''}</span>
           ${r.limite ? `<span class="gmeta num">Límite ${fmt(r.limite, true)} · usado ${Math.round(pct * 100)}% · disponible <b style="color:var(--ink)">${fmt(r.limite - r.deuda, true)}</b></span><span class="gbar"><span style="width:${Math.min(100, Math.round(pct * 100))}%"></span></span>` : ''}
         </button>
-        <button class="gpres" data-act="nuevoMsi" data-t="${t.id}">＋ Compra en esta tarjeta</button>
-        ${mios.length ? `<div class="glist">${mios.map(filaMsi).join('')}</div>` : '<div class="empty" style="padding:10px;font-size:12.5px">Sin compras registradas en esta tarjeta.</div>'}
-      </div>`; }).join('') || `<div class="card empty" style="padding:16px">Primero agrega tus tarjetas (corte y día de pago); luego registras sus compras.</div>`;
-    const huerf = msi.filter(p => !tarjetaDe(p));
-    if (huerf.length) cuerpo += `<div class="sec">Compras sin tarjeta válida</div><div class="rows">${huerf.map(filaMsi).join('')}</div>`;
+        <div class="proxbox"><span><small>Próximo pago${r.prox === hoy && !r.pagadoHoy ? ' · pendiente' : ''}</small>Vence ${fechaPagoTxt(t, r.prox)}</span><b class="num">${fmt(r.cargoProx, true)}</b></div>
+        <div class="proxsub">${etq(otro)}: <b class="num">${fmt(r.cargo(otro), true)}</b>${otro === hoy && linH ? ' · ' + semaforo(linH).t.replace(/^[●○◐✔➜] /, '') : ''}${r.susMes ? ' · suscripciones ' + fmt(r.susMes, true) + '/mes' : ''}</div>
+        <div class="gacts"><button data-act="nuevoMsi" data-t="${t.id}">＋ Compra</button><button data-act="nuevaSus" data-t="${t.id}">＋ Suscripción</button></div>
+        ${r.vivas.length || r.subsV.length ? `<div class="glist">${r.vivas.map(filaMsi).join('')}${r.subsV.map(filaSus).join('')}</div>` : '<div class="empty" style="padding:10px;font-size:12.5px">Sin compras activas en esta tarjeta.</div>'}
+        ${plegable(t.id, r.liq.map(filaMsi).concat(r.subsF.map(filaSus)), 'Liquidadas y canceladas')}
+      </div>`; }).join('') || `<div class="card empty" style="padding:16px">Primero agrega tus tarjetas (corte y día de pago); luego registras sus compras y suscripciones.</div>`;
+    const huerf = msi.filter(p => !tarjetaDe(p)).concat(subs.filter(p => !tarjetaDe(p)));
+    if (huerf.length) cuerpo += `<div class="sec">Sin tarjeta válida</div><div class="rows">${huerf.map(p => esSus(p) ? filaSus(p) : filaMsi(p)).join('')}</div>`;
   } else {
     const q = (UI.planQ || '').toLowerCase();
-    const todos = msi.map(p => ({ p, i: msiInfo(p), msi: true })).concat(dir.map(p => ({ p, i: planInfo(p), msi: false })))
-      .filter(x => !q || (x.p.nombre + ' ' + (x.msi && x.i.t ? x.i.t.nombre : '')).toLowerCase().includes(q))
-      .sort((a, b) => (a.i.liquidado - b.i.liquidado) || String(a.i.termina || '9999').localeCompare(String(b.i.termina || '9999')));
+    const todos = msi.map(p => ({ p, i: msiInfo(p), k: 'm' })).concat(dir.map(p => ({ p, i: planInfo(p), k: 'd' }))).concat(subs.map(p => ({ p, i: { liquidado: !susViva(p), termina: p.hasta || '9999', t: tarjetaDe(p) }, k: 's' })))
+      .filter(x => !q || (x.p.nombre + ' ' + (x.i.t ? x.i.t.nombre : '')).toLowerCase().includes(q))
+      .sort((a, b) => String(a.i.termina || '9999').localeCompare(String(b.i.termina || '9999')));
+    const html = x => x.k === 'm' ? filaMsi(x.p) : x.k === 's' ? filaSus(x.p) : filaDir(x.p);
+    const vivos = todos.filter(x => !x.i.liquidado && x.p.activo !== 'No' || x.k === 's' && !x.i.liquidado), muertos = todos.filter(x => !vivos.includes(x));
     cuerpo = `<label class="search">${IC.search}<input id="planQ" placeholder="Buscar compra o tarjeta" value="${esc(UI.planQ || '')}" autocomplete="off"></label>
-      <div class="rows">${todos.map(x => x.msi ? filaMsi(x.p) : filaDir(x.p)).join('') || '<div class="empty">Sin compras registradas.</div>'}</div>`;
+      <div class="rows">${vivos.map(html).join('') || '<div class="empty">Sin compras activas.</div>'}</div>
+      <div class="grupo" style="margin-top:10px">${plegable('_concepto', muertos.map(html), 'Liquidadas y canceladas')}</div>`;
+    if (!muertos.length) cuerpo = cuerpo.replace('<div class="grupo" style="margin-top:10px"></div>', '');
   }
   return `
   <div style="display:flex;align-items:center;gap:8px">
     <div class="filters" style="margin:0;flex:1"><button class="chip f ${orden === 'tarjeta' ? 'on' : ''}" data-act="planOrden" data-t="tarjeta">Por tarjeta</button><button class="chip f ${orden === 'concepto' ? 'on' : ''}" data-act="planOrden" data-t="concepto">Por concepto</button></div>
     <button class="link" style="color:var(--accent);font-weight:600;font-size:13px" data-act="nuevoPlan" data-t="Tarjeta">＋ Tarjeta</button>
   </div>
-  ${resumenDeudaHTML(tj, dir)}
+  ${resumenDeudaHTML(D)}
+  ${tj.length ? `<button class="btn ghost block" data-act="pdfPlanes" style="margin-top:10px">Reporte PDF de adeudos ↓</button>` : ''}
   ${cuerpo}
-  ${orden === 'tarjeta' ? `<div class="sec">Apartados · pago directo · ${dir.length} <button class="link" data-act="nuevoPlan" data-t="Apartado">Agregar →</button></div>
-  ${dir.length ? `<div class="rows">${dir.map(filaDir).join('')}</div>` : `<div class="card empty" style="padding:14px;font-size:12.5px">Apartados en tienda u otros pagos a plazos que no van con tarjeta: tienen su propia línea en cada mes.</div>`}` : ''}`;
+  ${orden === 'tarjeta' ? `<div class="sec">Apartados · pago directo · ${D.dirV.length} <button class="link" data-act="nuevoPlan" data-t="Apartado">Agregar →</button></div>
+  ${D.dirV.length ? `<div class="rows">${D.dirV.map(filaDir).join('')}</div>` : `<div class="card empty" style="padding:14px;font-size:12.5px">Apartados en tienda u otros pagos a plazos que no van con tarjeta: tienen su propia línea en cada mes.</div>`}
+  ${D.dirL.length ? `<div class="grupo" style="margin-top:8px">${plegable('_dir', D.dirL.map(filaDir), 'Apartados liquidados')}</div>` : ''}` : ''}`;
+}
+document.addEventListener('toggle', e => { const d = e.target; if (d.classList && d.classList.contains('liqs')) { UI.liqAbiertas = UI.liqAbiertas || {}; UI.liqAbiertas[d.dataset.k] = d.open; } }, true);
+
+/* ---------- Alta y edición de suscripciones ---------- */
+function sheetSus(p, tarjetaPre){
+  const nuevo = !p, tjs = (S.planes || []).filter(x => x.tipo === 'Tarjeta' && x.activo !== 'No');
+  p = p || { tipo: 'Suscripcion', tarjetaId: tarjetaPre || (tjs[0] ? tjs[0].id : ''), nombre: '', mensualidad: '', fechaCompra: hoyISO(), primerPago: '', notas: '', activo: 'Sí', hasta: '' };
+  const tj = (S.planes || []).find(t => t.id === p.tarjetaId);
+  const prCambio = tj ? primerPagoDe(hoyISO(), n(tj.diaCorte), n(tj.diaPago)) : sumarMes(mesHoy(), 1);
+  const hastaDef = p.hasta || sumarMes(prCambio, -1);
+  const nombres = [...new Set(S.conceptos.filter(c => c.tipo === 'Gasto').map(c => c.concepto))].sort();
+  const hist = nuevo ? [] : preciosSus(p);
+  openSheet(`<h2>${nuevo ? 'Nueva suscripción' : esc(p.nombre)}</h2>
+    <p class="lead">Servicio sin fecha de fin (izzi, Spotify, Amazon…). Se carga en el corte de la tarjeta y su monto se suma cada mes al pago de esa tarjeta en Mes.</p>
+    ${nuevo ? `<div class="seg"><button data-act="planTipo" data-t="Tarjeta">Tarjeta</button><button data-act="planTipo" data-t="Apartado">Compra / apartado</button><button data-act="planTipo" data-t="Suscripcion" class="on">Suscripción</button></div>` : ''}
+    <div class="f"><label>Tarjeta donde se carga</label><select id="plTj">${tjs.map(t => `<option value="${t.id}" ${t.id === p.tarjetaId ? 'selected' : ''}>${esc(t.nombre)} · corte ${n(t.diaCorte) || '—'} · pago ${n(t.diaPago) || '—'}</option>`).join('') || '<option value="">Primero agrega una tarjeta</option>'}</select></div>
+    <div class="f"><label>Servicio</label><input id="plNom" value="${esc(p.nombre)}" placeholder="Internet izzi, Spotify, Amazon Prime…"></div>
+    <div class="row2"><div class="f"><label>Monto mensual</label><input id="plMon" inputmode="decimal" value="${esc(p.mensualidad)}" placeholder="$0"></div>
+      <div class="f"><label>Fecha del primer cargo</label><input id="plFecha" type="date" value="${esc(p.fechaCompra || '')}"></div></div>
+    <div class="f"><label>Primer pago con la tarjeta</label><div class="ro" id="plPrimTxt">—</div>
+      <div class="hint"><span>El cargo entra en el corte de la tarjeta.</span><button data-act="primerManual">Cambiar</button></div>
+      <input id="plPrim" type="month" value="${esc(p.primerPago || '')}" class="${p.primerPago ? '' : 'hidden'}" style="margin-top:6px"></div>
+    ${!nuevo ? `<div class="f"><label>Si cambias el monto, aplica desde el pago de</label><input id="plDesde" type="month" value="${prCambio}">
+      <div class="hint"><span>Los pagos anteriores conservan su precio.</span></div>
+      ${hist.length > 1 || hist.length ? `<div class="abonos" style="margin-top:6px">${hist.map(h => `<div class="abr"><span>Desde ${etqL(h.desde).toLowerCase()}</span><b class="num">${fmt(h.monto, true)}</b><span></span></div>`).join('')}</div>` : ''}</div>` : ''}
+    ${nuevo ? `<div class="f"><label>¿Ya la tenías como gasto propio en Mes? (opcional)</label><input id="plRem" list="dlRem" placeholder="Elige el concepto para quitarlo y no contarlo doble" autocomplete="off"><datalist id="dlRem">${nombres.map(x => `<option value="${esc(x)}">`).join('')}</datalist></div>` : ''}
+    <div class="f"><label>Notas</label><input id="plNotas" value="${esc(p.notas)}"></div>
+    ${!nuevo ? `<div class="f"><div class="toggle"><span><b>Activa</b><br><span class="mut" style="font-size:13px">Apágala si la cancelas: deja de sumarse después del último pago.</span></span><button class="sw ${p.activo !== 'No' ? 'on' : ''}" id="plAct" data-act="sw"></button></div>
+      <div class="row2" style="margin-top:8px"><div class="f"><label>Último pago (al cancelar)</label><input id="plHasta" type="month" value="${hastaDef}"></div><div></div></div></div>` : ''}
+    <div class="acts">${nuevo ? '' : '<button class="btn danger" data-act="delPlan">Eliminar</button>'}<button class="btn" data-act="submit">Guardar</button></div>`,
+    async () => { const a = $('#plAct'), prim = $('#plPrim');
+      const d = { id: p.id, tipo: 'Suscripcion', nombre: val('plNom'), tarjetaId: val('plTj'), mensualidad: val('plMon'), fechaCompra: val('plFecha'),
+        primerPago: prim && !prim.classList.contains('hidden') ? prim.value : '', cambioDesde: $('#plDesde') ? val('plDesde') : '', hasta: $('#plHasta') ? val('plHasta') : '',
+        reemplaza: $('#plRem') ? val('plRem') : '', notas: val('plNotas'), activo: a ? a.classList.contains('on') : true };
+      if (await call('guardarPlan', d)) { closeSheet(); toast(nuevo ? 'Suscripción guardada' : 'Actualizada'); } });
+  sheetPlan.cur = p;
+  recalcPlan();
+}
+function recalcSus(){
+  const tj = (S.planes || []).find(t => t.id === val('plTj')), prim = $('#plPrim'), f = val('plFecha');
+  const ini = prim && !prim.classList.contains('hidden') && prim.value ? prim.value : (f && tj ? primerPagoDe(f, n(tj.diaCorte), n(tj.diaPago)) : '');
+  if ($('#plPrimTxt')) $('#plPrimTxt').textContent = ini ? fechaPagoTxt(tj, ini) + ' · y cada mes después' : 'Elige tarjeta y fecha del primer cargo';
+}
+
+/* ================== v2.5 · Reporte PDF de adeudos (Planes) ================== */
+function cargarJsPDF(){
+  if (window.jspdf) return Promise.resolve(window.jspdf);
+  return new Promise((ok, mal) => { const s = document.createElement('script'); s.src = 'jspdf.umd.min.js'; s.onload = () => ok(window.jspdf); s.onerror = () => mal(new Error('No se pudo cargar el generador de PDF. Revisa tu conexión.')); document.head.appendChild(s); });
+}
+async function reportePlanesPDF(){
+  busyOn('Generando reporte', 'Armando el PDF en tu dispositivo');
+  try {
+    const { jsPDF } = await cargarJsPDF();
+    const doc = new jsPDF({ unit: 'mm', format: 'letter' });
+    const M = 5, PW = 215.9, PH = 279.4, W = PW - 2 * M, BOT = PH - M - 7;
+    const D = datosPlanes(), hoyD = new Date();
+    const T = s => String(s == null ? '' : s).replace(/[—–]/g, '-').replace(/…/g, '...').replace(/[“”]/g, '"').replace(/[‘’]/g, "'").replace(/[^\x00-\xFF]/g, '');
+    const rgb = h => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+    const mezcla = (h, a) => rgb(h).map(c => Math.round(255 - (255 - c) * a));
+    const $$ = v => fmt(v, true);
+    const INK = '#16181D', MUT = '#6B6F78', LINE = '#E3E4E8', ACC = '#C8102E', POS = '#2E7D4F';
+    let y = M;
+    const color = (h, kind) => { const c = Array.isArray(h) ? h : rgb(h); kind === 'f' ? doc.setFillColor(...c) : kind === 'd' ? doc.setDrawColor(...c) : doc.setTextColor(...c); };
+    const txt = (s, x, yy, o = {}) => { doc.setFont('helvetica', o.b ? 'bold' : 'normal'); doc.setFontSize(o.s || 8.5); color(o.c || INK); doc.text(T(s), x, yy, { align: o.a || 'left', baseline: 'alphabetic' }); };
+    const corta = (s, w, size, b) => { doc.setFont('helvetica', b ? 'bold' : 'normal'); doc.setFontSize(size); s = T(s); if (doc.getTextWidth(s) <= w) return s; while (s.length > 1 && doc.getTextWidth(s + '...') > w) s = s.slice(0, -1); return s + '...'; };
+    const rect = (x, yy, w, h, f, r) => { color(f, 'f'); r ? doc.roundedRect(x, yy, w, h, r, r, 'F') : doc.rect(x, yy, w, h, 'F'); };
+    const linea = (yy, c) => { color(c || LINE, 'd'); doc.setLineWidth(0.2); doc.line(M, yy, M + W, yy); };
+    const nueva = () => { doc.addPage(); y = M + 2; };
+    const cabe = h => { if (y + h > BOT) { nueva(); return true; } return false; };
+    const barra = (x, yy, w, pct, liq) => { const a = avance(pct, liq); rect(x, yy, w, 2.2, '#ECEDF0', 1.1); const ww = Math.max(liq ? w : 0, w * Math.min(1, pct)); if (ww > 0.5) rect(x, yy, ww, 2.2, a.c, 1.1); return a; };
+    const seccion = (t, sub, c) => { cabe(14); y += 3; rect(M, y, 1.4, 6, c || ACC); txt(t, M + 3.5, y + 4.6, { b: true, s: 11.5 }); if (sub) txt(sub, M + W, y + 4.6, { a: 'right', c: MUT, s: 8 }); y += 9; };
+    const fdia = (t, mes) => T(fechaPagoTxt(t, mes));
+    const usr = (S.yo && (S.yo.nombre || S.yo.email)) || '';
+
+    /* ---------- Encabezado ---------- */
+    rect(M, y, W, 1.6, ACC); y += 7.5;
+    txt('Gastos Juances', M, y, { b: true, s: 17 });
+    txt('Reporte de adeudos · tarjetas, compras a meses y suscripciones', M, y + 5.2, { c: MUT, s: 9 });
+    txt(usr, M + W, y - 1, { a: 'right', b: true, s: 9 });
+    txt('Generado el ' + hoyD.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' }) + ' · ' + hoyD.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }), M + W, y + 3.5, { a: 'right', c: MUT, s: 8 });
+    y += 10;
+
+    /* ---------- Indicadores ---------- */
+    const kp = [['Adeudo total', $$(D.total), 'solo lo capturado', INK], ['Pago comprometido', $$(D.pagoSig), T(etqL(D.sig)), ACC], ['Este mes', $$(D.pagoAct), T(etqL(D.hoy)), INK], ['Suscripciones', $$(D.susMes), D.nSus + (D.nSus === 1 ? ' activa · al mes' : ' activas · al mes'), INK]];
+    const kw = (W - 3 * 3) / 4;
+    kp.forEach((k, i) => { const x = M + i * (kw + 3), hi = i === 1;
+      rect(x, y, kw, 19, hi ? mezcla(ACC, .09) : '#F6F7F9', 2); if (hi) rect(x, y, 1.3, 19, ACC);
+      txt(k[0].toUpperCase(), x + 4, y + 5.5, { s: 7, c: hi ? ACC : MUT, b: true }); txt(k[1], x + 4, y + 12.3, { s: 13, b: true, c: k[3] }); txt(k[2], x + 4, y + 16.6, { s: 7.3, c: MUT }); });
+    y += 23;
+    if (D.lim) { const pct = D.usadoLim / D.lim, cc = pct >= .7 ? ACC : pct >= .4 ? '#C88A12' : POS;
+      txt('Límite total ' + $$(D.lim) + ' · usado ' + Math.round(pct * 100) + '% · disponible ' + $$(D.lim - D.usadoLim), M, y + 3, { s: 8.5 });
+      rect(M + 112, y + 1, W - 112, 2.6, '#ECEDF0', 1.3); rect(M + 112, y + 1, (W - 112) * Math.min(1, pct), 2.6, cc, 1.3); y += 7; }
+    if (D.fin) { txt('Con lo capturado terminas de pagar tus compras a meses en ' + T(etqL(D.fin).toLowerCase()) + '. Las suscripciones siguen cada mes mientras estén activas.', M, y + 3, { s: 8, c: MUT }); y += 6; }
+
+    /* ---------- Calendario para apartar ---------- */
+    const meses = []; { let m = D.hoy; const lim = D.fin && D.fin > sumarMes(D.hoy, 5) ? D.fin : sumarMes(D.hoy, 5); while (m <= lim && meses.length < 12) { meses.push(m); m = sumarMes(m, 1); } }
+    const filasCal = meses.map(m => ({ m, partes: D.rs.map(x => ({ c: x.c, v: x.r.cargo(m) })).concat(D.menDir ? [{ c: '#94A3B8', v: sum(D.dirV.filter(p => p.inicio <= m && (!planInfo(p).termina || planInfo(p).termina >= m)), p => n(p.mensualidad)) }] : []) }));
+    filasCal.forEach(f => f.tot = sum(f.partes, p => p.v));
+    const maxC = Math.max(1, ...filasCal.map(f => f.tot));
+    seccion('Calendario de pagos para apartar', 'según tus compras y suscripciones capturadas');
+    const cx = M + 30, cw = W - 30 - 30;
+    filasCal.forEach((f, i) => { cabe(6.4);
+      if (i % 2 === 0) rect(M, y - 0.6, W, 6.2, '#FAFAFB');
+      txt(etqL(f.m), M + 2, y + 3.6, { s: 8.5, b: f.m === D.sig, c: f.m === D.sig ? ACC : INK });
+      let x = cx; f.partes.forEach(p => { const w = cw * p.v / maxC; if (w > 0.2) { rect(x, y + 0.9, w, 3.4, p.c); x += w; } });
+      txt($$(f.tot), M + W - 2, y + 3.6, { a: 'right', s: 8.5, b: true, c: f.m === D.sig ? ACC : INK }); y += 6.2; });
+    y += 1.5; let lx = M + 2; D.rs.forEach(x => { cabe(5); rect(lx, y, 2.6, 2.6, x.c, .6); txt(x.t.nombre, lx + 3.8, y + 2.3, { s: 7.5, c: MUT }); doc.setFontSize(7.5); lx += 3.8 + doc.getTextWidth(T(x.t.nombre)) + 6; });
+    if (D.menDir) { rect(lx, y, 2.6, 2.6, '#94A3B8', .6); txt('Apartados directos', lx + 3.8, y + 2.3, { s: 7.5, c: MUT }); }
+    y += 6;
+
+    /* ---------- Resumen por tarjeta ---------- */
+    seccion('Adeudo por tarjeta');
+    const col = [M + 2, M + 70, M + 102, M + 140, M + 172, M + W - 2];
+    const encab = (h) => { rect(M, y, W, 6, '#F1F2F4'); h.forEach(([t, x, a]) => txt(t, x, y + 4.1, { s: 7, b: true, c: MUT, a })); y += 7.5; };
+    encab([['TARJETA', col[0]], ['ACTIVAS', col[1] + 18, 'right'], ['PRÓXIMO PAGO', col[2]], ['MONTO', col[4] - 4, 'right'], ['% LÍMITE', col[4] + 12, 'right'], ['ADEUDO', col[5], 'right']]);
+    D.rs.forEach(({ t, r, c }) => { cabe(7);
+      rect(M, y - 0.4, 1.4, 5.6, c); txt(corta(t.nombre, 64, 9, true), col[0] + 1.5, y + 3.6, { b: true, s: 9 });
+      txt(r.vivas.length + (r.subsV.length ? ' + ' + r.subsV.length + ' susc.' : ''), col[1] + 18, y + 3.6, { a: 'right', s: 8.5 });
+      txt(fdia(t, r.prox), col[2], y + 3.6, { s: 8.5 }); txt($$(r.cargoProx), col[4] - 4, y + 3.6, { a: 'right', s: 8.5 });
+      txt(r.limite ? Math.round(r.deuda / r.limite * 100) + '%' : '-', col[4] + 12, y + 3.6, { a: 'right', s: 8.5, c: MUT });
+      rect(col[5] - 30, y - 0.2, 30, 5.2, mezcla(c, .12), 1.2); txt($$(r.deuda), col[5] - 1.5, y + 3.6, { a: 'right', b: true, s: 9, c });
+      y += 6.4; linea(y - 0.9); });
+    if (D.dirV.length) { cabe(7); txt('Apartados · pago directo', col[0] + 1.5, y + 3.6, { b: true, s: 9 }); txt(String(D.dirV.length), col[1] + 18, y + 3.6, { a: 'right', s: 8.5 }); txt($$(D.dDir), col[5] - 1.5, y + 3.6, { a: 'right', b: true, s: 9 }); y += 6.4; linea(y - 0.9); }
+    cabe(7); rect(M, y - 0.4, W, 6.4, '#16181D'); txt('TOTAL', col[0] + 1.5, y + 3.9, { b: true, s: 8.5, c: '#FFFFFF' }); txt($$(D.pagoSig), col[4] - 4, y + 3.9, { a: 'right', s: 8.5, c: '#FFFFFF', b: true }); txt($$(D.total), col[5] - 1.5, y + 3.9, { a: 'right', b: true, s: 9.5, c: '#FFFFFF' }); y += 9;
+
+    /* ---------- Detalle por tarjeta (adeudo corriente) ---------- */
+    const c1 = M + 3, c2 = M + 80, c3 = M + 136, c4 = M + 168, c5 = M + W - 2;
+    const filaMsiPDF = (p, liq) => { const i = msiInfo(p), unico = i.n === 1;
+      cabe(9.5);
+      txt(corta(p.nombre, c2 - c1 - 3, 9, true), c1, y + 3.4, { b: true, s: 9, c: liq ? MUT : INK });
+      txt(unico ? 'Una exhibición' : $$(i.men) + ' x ' + i.n + ' meses', c1, y + 7.2, { s: 7.5, c: MUT });
+      if (unico) { const lb = (liq ? 'Pagado ' : 'Pago único ') + fdia(i.t, i.termina); rect(c2, y + 1, 48, 4.6, liq ? mezcla(POS, .14) : mezcla('#2563A8', .1), 2.3); txt(lb, c2 + 24, y + 4.3, { a: 'center', s: 7.5, b: true, c: liq ? POS : '#2563A8' }); }
+      else { const a = barra(c2, y + 1.8, 34, i.pct, i.liquidado); txt(Math.round((i.liquidado ? 1 : i.pct) * 100) + '%', c2 + 36, y + 3.9, { s: 8, b: true, c: a.c }); txt(i.hechos + '/' + i.n + ' pagos · ' + a.t.toLowerCase(), c2, y + 7.2, { s: 7.3, c: MUT }); }
+      txt(liq ? 'Terminó ' + T(etq(i.termina).toLowerCase()) : i.prox ? fdia(i.t, i.prox.mes) : '-', c3 + 4, y + 3.4, { s: 8.3 });
+      if (!liq && !unico && i.atrasados) txt(i.atrasados + ' sin pagar', c3 + 4, y + 7.2, { s: 7.3, c: ACC, b: true });
+      else if (!liq && !unico) txt('termina ' + T(etq(i.termina).toLowerCase()), c3 + 4, y + 7.2, { s: 7.3, c: MUT });
+      txt(liq ? $$(i.total) : $$(i.restante), c5, y + 3.4, { a: 'right', b: true, s: 9.2, c: liq ? POS : INK });
+      txt(liq ? 'pagado' : 'de ' + $$(i.total), c5, y + 7.2, { a: 'right', s: 7.3, c: MUT });
+      y += 9.6; linea(y - 0.8); };
+    const filaSusPDF = (p, t, fin) => { cabe(9.5); const px = proxMesTj(t), mon = precioSus(p, fin ? p.hasta : (susCobra(p, px) ? px : p.inicio));
+      txt(corta(p.nombre, c2 - c1 - 3, 9, true), c1, y + 3.4, { b: true, s: 9, c: fin ? MUT : INK });
+      txt('Suscripción · cargo en el corte (día ' + (n(t.diaCorte) || '-') + ')', c1, y + 7.2, { s: 7.5, c: MUT });
+      rect(c2, y + 1, 48, 4.6, fin ? '#F1F2F4' : mezcla('#7A3E9D', .1), 2.3); txt(fin ? 'Cancelada' : p.hasta ? 'Cancelada · último pago ' + T(etq(p.hasta).toLowerCase()) : 'Cada mes · sin fecha de fin', c2 + 24, y + 4.3, { a: 'center', s: 7.5, b: true, c: fin ? MUT : '#7A3E9D' });
+      txt(fin ? 'Último pago ' + T(etq(p.hasta).toLowerCase()) : susCobra(p, px) ? fdia(t, px) : 'Empieza ' + fdia(t, p.inicio), c3 + 4, y + 3.4, { s: 8.3 });
+      txt('desde ' + T(etq(p.inicio).toLowerCase()), c3 + 4, y + 7.2, { s: 7.3, c: MUT });
+      txt($$(mon), c5, y + 3.4, { a: 'right', b: true, s: 9.2, c: fin ? MUT : INK }); txt('al mes', c5, y + 7.2, { a: 'right', s: 7.3, c: MUT });
+      y += 9.6; linea(y - 0.8); };
+    const encabDet = () => { rect(M, y, W, 5.6, '#F6F7F9'); [['CONCEPTO', c1], ['AVANCE', c2], ['PRÓXIMO PAGO', c3 + 4], ['RESTANTE', c5, 'right']].forEach(([t, x, a]) => txt(t, x, y + 3.9, { s: 6.8, b: true, c: MUT, a })); y += 7; };
+    const bandaTj = (t, r, c, sub) => { cabe(30); y += 2; rect(M, y, W, 11, c, 1.5);
+      txt(t.nombre, M + 4, y + 5, { b: true, s: 11.5, c: '#FFFFFF' }); txt(sub, M + 4, y + 9, { s: 7.6, c: '#FFFFFF' });
+      rect(M + W - 44, y + 1.8, 41, 7.4, '#FFFFFF', 1.5); txt($$(r.deuda), M + W - 23.5, y + 5.6, { a: 'center', b: true, s: 10.5, c }); txt('ADEUDO', M + W - 23.5, y + 8.4, { a: 'center', s: 5.8, b: true, c: MUT });
+      y += 13; };
+    seccion('Detalle por tarjeta · adeudo corriente', 'ordenado por fecha de término');
+    D.rs.forEach(({ t, r, c }) => {
+      bandaTj(t, r, c, 'Corte ' + (n(t.diaCorte) || '-') + ' · pago ' + (n(t.diaPago) || '-') + (r.limite ? ' · límite ' + $$(r.limite) + ' · disponible ' + $$(r.limite - r.deuda) : '') + ' · ' + r.vivas.length + (r.vivas.length === 1 ? ' compra activa' : ' compras activas'));
+      rect(M, y, W, 8, mezcla(ACC, .07), 1.2); rect(M, y, 1.3, 8, ACC);
+      txt('PRÓXIMO PAGO · vence ' + fdia(t, r.prox), M + 4, y + 5.3, { s: 8.5, b: true, c: ACC }); txt($$(r.cargoProx), M + W - 3, y + 5.5, { a: 'right', b: true, s: 11, c: ACC });
+      const otro = r.prox === D.hoy ? r.sig : D.hoy; txt(T(etqL(otro)) + ': ' + $$(r.cargo(otro)), M + W - 45, y + 5.3, { a: 'right', s: 7.8, c: MUT });
+      y += 10;
+      if (!r.vivas.length && !r.subsV.length) { cabe(7); txt('Sin compras activas en esta tarjeta.', c1, y + 3.5, { c: MUT }); y += 7; return; }
+      encabDet();
+      r.vivas.forEach(p => filaMsiPDF(p, false));
+      r.subsV.forEach(p => filaSusPDF(p, t, false));
+      cabe(7); rect(M, y - 0.3, W, 6, '#F6F7F9'); txt('Subtotal ' + T(t.nombre), c1, y + 3.8, { b: true, s: 8.3 });
+      txt($$(r.deuda), c5, y + 3.8, { a: 'right', b: true, s: 9.2, c }); y += 9;
+    });
+    if (D.dirV.length) { seccion('Apartados · pago directo', '', '#94A3B8'); encabDet();
+      D.dirV.forEach(p => { const i = planInfo(p); cabe(9.5);
+        txt(corta(p.nombre, c2 - c1 - 3, 9, true), c1, y + 3.4, { b: true, s: 9 }); txt($$(n(p.mensualidad)) + ' x ' + (n(p.pagos) || '?'), c1, y + 7.2, { s: 7.5, c: MUT });
+        const a = barra(c2, y + 1.8, 34, i.pct, false); txt(Math.round(i.pct * 100) + '%', c2 + 36, y + 3.9, { s: 8, b: true, c: a.c }); txt(i.hechos + '/' + (n(p.pagos) || '?') + ' pagos', c2, y + 7.2, { s: 7.3, c: MUT });
+        txt(i.termina ? 'termina ' + T(etq(i.termina).toLowerCase()) : '-', c3 + 4, y + 3.4, { s: 8.3 }); txt($$(i.restante), c5, y + 3.4, { a: 'right', b: true, s: 9.2 }); y += 9.6; linea(y - 0.8); }); }
+
+    /* ---------- Liquidado y cancelado (al final, distinguido) ---------- */
+    const hayLiq = D.rs.some(x => x.r.liq.length || x.r.subsF.length) || D.dirL.length;
+    if (hayLiq) {
+      cabe(40); y += 4; rect(M, y, W, 12, POS, 1.5);
+      const totLiq = sum(D.rs, x => sum(x.r.liq, p => msiInfo(p).liquidado ? msiInfo(p).total : msiInfo(p).hechos * msiInfo(p).men)) + sum(D.dirL, p => planInfo(p).pagado);
+      txt('YA LIQUIDADO Y CANCELADO', M + 4, y + 5.4, { b: true, s: 11, c: '#FFFFFF' }); txt('Separado del adeudo corriente · no suma al adeudo', M + 4, y + 9.4, { s: 7.6, c: '#FFFFFF' });
+      txt($$(totLiq), M + W - 4, y + 6, { a: 'right', b: true, s: 12, c: '#FFFFFF' }); txt('pagado', M + W - 4, y + 9.6, { a: 'right', s: 7, c: '#FFFFFF' });
+      y += 15;
+      D.rs.forEach(({ t, r, c }) => { if (!r.liq.length && !r.subsF.length) return;
+        cabe(16); rect(M, y, 1.4, 5.5, c); txt(t.nombre, M + 3.5, y + 4.2, { b: true, s: 9.5, c }); txt(r.liq.length + r.subsF.length + ' registro(s)', M + W - 2, y + 4.2, { a: 'right', s: 7.6, c: MUT }); y += 7.5;
+        r.liq.forEach(p => filaMsiPDF(p, true)); r.subsF.forEach(p => filaSusPDF(p, t, true)); y += 2; });
+      if (D.dirL.length) { cabe(16); txt('Apartados · pago directo', M + 3.5, y + 4.2, { b: true, s: 9.5, c: MUT }); y += 7.5;
+        D.dirL.forEach(p => { const i = planInfo(p); cabe(9.5); txt(corta(p.nombre, c2 - c1 - 3, 9, true), c1, y + 3.4, { b: true, s: 9, c: MUT }); barra(c2, y + 1.8, 34, 1, true); txt('100%', c2 + 36, y + 3.9, { s: 8, b: true, c: POS }); txt($$(i.pagado), c5, y + 3.4, { a: 'right', b: true, s: 9.2, c: POS }); y += 9.6; linea(y - 0.8); }); }
+    }
+
+    /* ---------- Pie de página ---------- */
+    const np = doc.getNumberOfPages();
+    for (let i = 1; i <= np; i++) { doc.setPage(i); linea(PH - M - 4.5); txt('Gastos Juances · Reporte de adeudos · solo incluye lo capturado en Planes', M, PH - M - 1.2, { s: 7, c: MUT }); txt('Página ' + i + ' de ' + np, M + W, PH - M - 1.2, { a: 'right', s: 7, c: MUT }); }
+
+    const nombre = 'Adeudos Gastos Juances ' + hoyISO() + '.pdf';
+    const blob = doc.output('blob'), file = new File([blob], nombre, { type: 'application/pdf' });
+    busyOff(true, 'Reporte listo');
+    if (window.MODO === 'demo') { const u = URL.createObjectURL(blob); openSheet(`<h2>Reporte de adeudos</h2><p class="lead">Vista previa. En tu app se descarga o se comparte como PDF.</p><iframe class="compview" style="height:65vh;background:#fff" src="${u}"></iframe><div class="acts"><a class="btn" href="${u}" download="${esc(nombre)}">Descargar</a></div>`); window.__ultimoPDF = blob; return; }
+    if (navigator.canShare && navigator.canShare({ files: [file] }) && (isIOS || /Android/.test(navigator.userAgent))) { try { await navigator.share({ files: [file], title: nombre }); return; } catch(e) { if (e.name === 'AbortError') return; } }
+    const url = URL.createObjectURL(file), a = document.createElement('a'); a.href = url; a.download = nombre; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60000); toast('Reporte descargado');
+  } catch(e) { busyOff(false, e.message); toast(e.message, true); }
 }
 
 function sheetPlan(p, tipoNuevo, tarjetaPre){
+  if (p ? esSus(p) : tipoNuevo === 'Suscripcion') return sheetSus(p, tarjetaPre);
   const nuevo = !p;
   const tjs = (S.planes || []).filter(x => x.tipo === 'Tarjeta' && x.activo !== 'No');
   p = p || { tipo: tipoNuevo || 'Tarjeta', modo: tipoNuevo === 'Apartado' && tarjetaPre !== '' ? 'tarjeta' : 'directo', tarjetaId: tarjetaPre || (tjs[0] ? tjs[0].id : ''), nombre:'', concepto:'', diaCorte:'', diaPago:'', limite:'', total:'', mensualidad:'', pagos:'', inicio: S.meses.length ? S.meses[S.meses.length - 1].mes : '', previo:'', notas:'', activo:'Sí', fechaCompra: new Date().toISOString().slice(0, 10), pagosHechos: 0, primerPago: '' };
@@ -1457,7 +1738,7 @@ function sheetPlan(p, tipoNuevo, tarjetaPre){
       <div class="hint">Se marcan solas cuando la tarjeta de ese mes queda como <b>Pagada</b>. Toca un mes para marcarlo a mano (pagado, pendiente o automático).</div></div>`; }
   openSheet(`<h2>${nuevo ? (T ? 'Nueva tarjeta' : 'Nueva compra a meses o apartado') : esc(p.nombre)}</h2>
     <p class="lead">${T ? 'Sin monto fijo: su pago de cada mes en Mes se arma solo con la suma de las compras que registres aquí.' : M ? 'Va dentro del pago de la tarjeta: no crea línea propia en Mes, así no se cuenta dos veces.' : 'Pago directo (apartado en tienda): tiene su propia línea con la mensualidad en cada mes.'}</p>
-    ${nuevo ? `<div class="seg"><button data-act="planTipo" data-t="Tarjeta" class="${T ? 'on' : ''}">Tarjeta</button><button data-act="planTipo" data-t="Apartado" class="${!T ? 'on' : ''}">Compra a meses / apartado</button></div>` : ''}
+    ${nuevo ? `<div class="seg"><button data-act="planTipo" data-t="Tarjeta" class="${T ? 'on' : ''}">Tarjeta</button><button data-act="planTipo" data-t="Apartado" class="${!T ? 'on' : ''}">Compra / apartado</button><button data-act="planTipo" data-t="Suscripcion">Suscripción</button></div>` : ''}
     ${!T ? `<div class="f"><label>¿Cómo se paga?</label><div class="seg"><button data-act="planModo" data-t="tarjeta" class="${M ? 'on' : ''}">Dentro de una tarjeta</button><button data-act="planModo" data-t="directo" class="${!M ? 'on' : ''}">Pago directo</button></div></div>` : ''}
     ${!T && M ? `<div class="f"><label>Tarjeta</label><select id="plTj">${tjs.map(t => `<option value="${t.id}" ${t.id === p.tarjetaId ? 'selected' : ''}>${esc(t.nombre)} · corte ${n(t.diaCorte) || '—'} · pago ${n(t.diaPago) || '—'}</option>`).join('') || '<option value="">Primero agrega una tarjeta</option>'}</select></div>` : ''}
     <div class="f"><label>${T ? 'Nombre de la tarjeta' : 'Concepto de la compra'}</label><input id="plNom" value="${esc(p.nombre)}" placeholder="${T ? 'TDC BBVA Sarit' : '2 playeras Adidas · Sears'}"></div>
@@ -1490,6 +1771,7 @@ function sheetPlan(p, tipoNuevo, tarjetaPre){
   if (!T && M) recalcPlan();
 }
 function recalcPlan(){
+  if ($('#plMon')) return recalcSus();
   const tj = (S.planes || []).find(t => t.id === val('plTj')), tot = n(val('plTot')), np = Math.max(1, n(val('plPagos')) || 1);
   const men = tot / np, prim = $('#plPrim'), f = val('plFecha');
   const ini = prim && !prim.classList.contains('hidden') && prim.value ? prim.value : (f && tj ? primerPagoDe(f, n(tj.diaCorte), n(tj.diaPago)) : '');
@@ -1511,7 +1793,7 @@ function desgloseTarjetaHTML(m){
   const l = msiDelMes(t, m.mes); if (!l.length) return `<div class="f"><label>Compras en este pago</label><div class="abonos"><div class="abr mut"><span>Ninguna capturada en ${etq(m.mes)}</span></div></div></div>`;
   const tot = sum(l, x => x.i.men), ap = aplicado(m), extra = n(m.monto) - tot, demas = ap - Math.max(tot, n(m.monto));
   return `<div class="f"><label>Compras en este pago · ${l.length}</label><div class="abonos">
-    ${l.map(x => `<div class="abr"><span>${esc(x.p.nombre)} <span class="mut">· ${x.i.n === 1 ? 'una exhibición' : (x.c.k + 1) + '/' + x.i.n}</span></span><b class="num">${fmt(x.i.men, true)}</b><span></span></div>`).join('')}
+    ${l.map(x => `<div class="abr"><span>${esc(x.p.nombre)} <span class="mut">· ${x.i.sus ? 'suscripción' : x.i.n === 1 ? 'una exhibición' : (x.c.k + 1) + '/' + x.i.n}</span></span><b class="num">${fmt(x.i.men, true)}</b><span></span></div>`).join('')}
     <div class="abr" style="background:var(--soft)"><span><b>Suma de compras</b>${m.monto !== '' && Math.abs(extra) >= 0.01 ? ` <span class="mut">· otros cargos ${fmt(extra, true)}</span>` : ''}</span><b class="num">${fmt(tot, true)}</b><span></span></div>
     ${demas >= 0.01 ? `<div class="abr"><span>Pagado de más <span class="mut">· atrasados o compras sin capturar</span></span><b class="num">${fmt(demas, true)}</b><span></span></div>` : ''}
   </div>${m.origen === 'tarjeta' ? '<div class="hint"><span>El monto se calcula solo con las compras de Planes. Si lo cambias a mano, deja de actualizarse.</span></div>' : ''}${m.monto === '' && editable(m.mes) ? `<div class="hint"><button data-act="usarMsi" data-v="${Math.round(tot * 100) / 100}">Usar ${fmt(tot, true)} como monto</button><span>(agrega tus otros cargos si los hay)</span></div>` : ''}</div>`;
@@ -1523,6 +1805,8 @@ Object.assign(ACT, {
   planOrden: d => { UI.planOrden = d.t; render(); },
   planModo: d => { UI.planModo = d.t; sheetPlan(sheetPlan.cur && sheetPlan.cur.id ? sheetPlan.cur : null, 'Apartado'); },
   nuevoMsi: d => { UI.planModo = 'tarjeta'; sheetPlan(null, 'Apartado', d.t); },
+  nuevaSus: d => { UI.planModo = null; sheetSus(null, d.t); },
+  pdfPlanes: () => reportePlanesPDF(),
   primerManual: () => { const i = $('#plPrim'); if (!i) return; i.classList.toggle('hidden'); if (!i.classList.contains('hidden') && !i.value) { const tj = (S.planes || []).find(t => t.id === val('plTj')); const f = val('plFecha'); if (f && tj) i.value = primerPagoDe(f, n(tj.diaCorte), n(tj.diaPago)); } recalcPlan(); },
   usarSug: d => { $('#plHechos').value = d.k; recalcPlan(); },
   marcaMsi: d => sheetMarca(d.m, d.o),
